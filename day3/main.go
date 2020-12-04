@@ -8,8 +8,7 @@ import (
 )
 
 type Slope struct {
-	right int
-	down  int
+	right, down int
 }
 
 func main() {
@@ -32,31 +31,26 @@ func main() {
 	fmt.Println("Encoutered", result, "trees")
 }
 
-func treesEncountered(slope Slope, treeMap [][]bool) int {
-	width := len(treeMap[0])
-
+func treesEncountered(slope Slope, treeMap [][]bool) (treesEncountered int) {
 	x := 0
-
-	treesEncountered := 0
 	for y := 0; y < len(treeMap); y += slope.down {
+		width := len(treeMap[y])
 		if treeMap[y][x] {
 			treesEncountered++
 		}
 
 		x = (x + slope.right) % width
 	}
-
-	return treesEncountered
+	return
 }
 
-func readTreeMap() [][]bool {
+func readTreeMap() (treeMap [][]bool) {
 	file, err := os.Open("/Users/mzwolsman/Developer/go-aoc/day3/input.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	scanner := bufio.NewScanner(file)
-	var treeMap [][]bool
 	for scanner.Scan() {
 		line := scanner.Text()
 		var treeRow []bool
@@ -67,5 +61,5 @@ func readTreeMap() [][]bool {
 		treeMap = append(treeMap, treeRow)
 	}
 
-	return treeMap
+	return
 }
