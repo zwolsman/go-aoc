@@ -11,7 +11,11 @@ import (
 
 func main() {
 	boardingPasses := readAllLines("/Users/mzwolsman/Developer/go-aoc/day5/input.txt")
+	part1(boardingPasses)
 
+}
+
+func part1(boardingPasses []string) {
 	highestSeatID := 0
 	for _, boardingPass := range boardingPasses {
 		id := SeatID(boardingPass)
