@@ -47,21 +47,12 @@ var rowReplacer = strings.NewReplacer("F", "0", "B", "1")
 var columnReplacer = strings.NewReplacer("L", "0", "R", "1")
 
 func SeatID(boardingPass string) int {
-
-	rowStr := boardingPass[:7]
-	rowStr = strings.ReplaceAll(rowStr, "F", "0")
-	rowStr = strings.ReplaceAll(rowStr, "B", "1")
-
-	row, err := strconv.ParseInt(rowStr, 2, 64)
+	row, err := strconv.ParseInt(rowReplacer.Replace(boardingPass[:7]), 2, 64)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	columnStr := boardingPass[7:]
-	columnStr = strings.ReplaceAll(columnStr, "L", "0")
-	columnStr = strings.ReplaceAll(columnStr, "R", "1")
-
-	column, err := strconv.ParseInt(columnStr, 2, 32)
+	column, err := strconv.ParseInt(columnReplacer.Replace(boardingPass[7:]), 2, 32)
 	if err != nil {
 		log.Fatal(err)
 	}
