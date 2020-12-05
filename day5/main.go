@@ -4,8 +4,9 @@ import (
 	"bufio"
 	"fmt"
 	"log"
-	"math"
 	"os"
+	"strconv"
+	"strings"
 )
 
 func main() {
@@ -14,7 +15,6 @@ func main() {
 	highestSeatID := 0
 	for _, boardingPass := range boardingPasses {
 		id := SeatID(boardingPass)
-		fmt.Println(boardingPass, id)
 		if id > highestSeatID {
 			highestSeatID = id
 		}
@@ -24,39 +24,26 @@ func main() {
 }
 
 func SeatID(boardingPass string) int {
-	row := calculate(127, 'F', 'B', boardingPass[0:7])
-	column := calculate(7, 'L', 'R', boardingPass[7:])
 
-	println("row", row, "column", column)
+	rowStr := boardingPass[:7]
+	rowStr = strings.ReplaceAll(rowStr, "F", "0")
+	rowStr = strings.ReplaceAll(rowStr, "B", "1")
 
-	return (row * 8) + column
-}
-
-func calculate(high int, lowerHalf, upperHalf rune, chars string) int {
-	low := 0
-	for _, code := range chars {
-		diff := float64(high - low)
-		switch code {
-		case lowerHalf:
-			high = high - int(math.Ceil(diff/2))
-			break
-		case upperHalf:
-			low = low + int(math.Ceil(diff/2))
-			break
-		}
+	row, err := strconv.ParseInt(rowStr, 2, 64)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	last := chars[len(chars)-1:]
-	if last == string(lowerHalf) {
-		return low
-	}
-	if last == string(upperHalf) {
-		return high
+	columnStr := boardingPass[7:]
+	columnStr = strings.ReplaceAll(columnStr, "L", "0")
+	columnStr = strings.ReplaceAll(columnStr, "R", "1")
+
+	column, err := strconv.ParseInt(columnStr, 2, 32)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	println(chars, low, high)
-	log.Fatal("error, could not solve ", chars)
-	return 0
+	return int((row * 8) + column)
 }
 
 func readAllLines(path string) []string {
