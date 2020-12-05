@@ -2,9 +2,9 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"log"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -12,7 +12,7 @@ import (
 func main() {
 	boardingPasses := readAllLines("/Users/mzwolsman/Developer/go-aoc/day5/input.txt")
 	part1(boardingPasses)
-
+	part2(boardingPasses)
 }
 
 func part1(boardingPasses []string) {
@@ -24,8 +24,27 @@ func part1(boardingPasses []string) {
 		}
 	}
 
-	fmt.Println("highest seat id", highestSeatID)
+	println("highest seat id", highestSeatID)
 }
+
+func part2(boardingPasses []string) {
+	seatIDs := make([]int, len(boardingPasses))
+	for i, boardingPass := range boardingPasses {
+		seatIDs[i] = SeatID(boardingPass)
+	}
+
+	sort.Ints(seatIDs)
+	for i := 0; i < len(seatIDs)-1; i++ {
+		diff := seatIDs[i] - seatIDs[i+1]
+		if diff != -1 {
+			missingSeatID := seatIDs[i] + 1
+			println("my seat id", missingSeatID)
+		}
+	}
+}
+
+var rowReplacer = strings.NewReplacer("F", "0", "B", "1")
+var columnReplacer = strings.NewReplacer("L", "0", "R", "1")
 
 func SeatID(boardingPass string) int {
 
