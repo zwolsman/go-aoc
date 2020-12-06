@@ -1,14 +1,13 @@
 package main
 
 import (
-	"bufio"
-	"log"
-	"os"
+	"io/ioutil"
+	"strings"
 )
 
 func main() {
-	lines := readAllLines("/Users/mzwolsman/Developer/go-aoc/day6/input.txt")
-	groups := Group(lines)
+	data, _ := ioutil.ReadFile("/Users/mzwolsman/Developer/go-aoc/day6/input.txt")
+	groups := Group(string(data))
 	part1(groups)
 	part2(groups)
 }
@@ -46,18 +45,12 @@ func CountAllYesVotes(groups [][]string) (sum int) {
 	return
 }
 
-func Group(lines []string) (groups [][]string) {
-	var group []string
-	for _, person := range lines {
-		if person == "" {
-			groups = append(groups, group)
-			group = nil
-			continue
-		}
-
-		group = append(group, person)
+func Group(input string) (output [][]string) {
+	groups := strings.Split(input, "\n\n")
+	for _, group := range groups {
+		people := strings.Split(group, "\n")
+		output = append(output, people)
 	}
-	groups = append(groups, group)
 	return
 }
 
@@ -72,19 +65,4 @@ func createVoteMap(groups [][]string) (allVotes []map[int32]int) {
 		allVotes = append(allVotes, votes)
 	}
 	return
-}
-
-func readAllLines(path string) []string {
-	file, err := os.Open(path)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	scanner := bufio.NewScanner(file)
-	var lines []string
-
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-	return lines
 }

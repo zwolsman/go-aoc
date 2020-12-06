@@ -2,23 +2,7 @@ package main
 
 import "testing"
 
-var data = []string{
-	"abc",
-	"",
-	"a",
-	"b",
-	"c",
-	"",
-	"ab",
-	"ac",
-	"",
-	"a",
-	"a",
-	"a",
-	"a",
-	"",
-	"b",
-}
+var data = "abc\n\na\nb\nc\n\nab\nac\n\na\na\na\na\n\nb"
 
 func TestGroup(t *testing.T) {
 	groups := Group(data)
