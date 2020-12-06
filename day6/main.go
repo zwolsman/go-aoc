@@ -7,38 +7,70 @@ import (
 )
 
 func main() {
-	part1()
-}
-
-func part1() {
 	lines := readAllLines("/Users/mzwolsman/Developer/go-aoc/day6/input.txt")
 	groups := Group(lines)
+	part1(groups)
+	part2(groups)
+}
+
+func part1(groups [][]string) {
 	sum := CountVotes(groups)
 	println(sum, "is the number of questions to which anyone answered \"yes\"")
 }
 
-func CountVotes(groups []string) (sum int) {
-	for _, group := range groups {
-		votes := make(map[int32]bool)
-		for _, vote := range group {
-			votes[vote] = true
-		}
-		sum += len(votes)
+func part2(groups [][]string) {
+	sum := CountAllYesVotes(groups)
+	println(sum, "is the sum of the number of questions to which everyone answered \"yes\"")
+}
+
+func CountVotes(groups [][]string) (sum int) {
+	votes := createVoteMap(groups)
+	for _, groupVotes := range votes {
+		sum += len(groupVotes)
 	}
 	return
 }
 
-func Group(lines []string) (groups []string) {
-	group := ""
-	for _, line := range lines {
-		if line == "" {
+func CountAllYesVotes(groups [][]string) (sum int) {
+	votes := createVoteMap(groups)
+
+	for i, group := range groups {
+		groupVotes := votes[i]
+		for _, v := range groupVotes {
+			if v == len(group) {
+				sum++
+			}
+		}
+	}
+
+	return
+}
+
+func Group(lines []string) (groups [][]string) {
+	var group []string
+	for _, person := range lines {
+		if person == "" {
 			groups = append(groups, group)
-			group = ""
+			group = nil
 			continue
 		}
-		group += line
+
+		group = append(group, person)
 	}
 	groups = append(groups, group)
+	return
+}
+
+func createVoteMap(groups [][]string) (allVotes []map[int32]int) {
+	for _, group := range groups {
+		votes := make(map[int32]int)
+		for _, person := range group {
+			for _, vote := range person {
+				votes[vote]++
+			}
+		}
+		allVotes = append(allVotes, votes)
+	}
 	return
 }
 

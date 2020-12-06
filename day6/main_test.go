@@ -29,11 +29,19 @@ func TestGroup(t *testing.T) {
 }
 
 func TestCountVotes(t *testing.T) {
-
 	groups := Group(data)
 	votes := CountVotes(groups)
 
 	if votes != 11 {
 		t.Errorf("expected %d, got %d votes", 11, votes)
+	}
+}
+
+func TestCountAllYesVotes(t *testing.T) {
+	groups := Group(data)
+	votes := CountAllYesVotes(groups)
+
+	if votes != 6 {
+		t.Errorf("expected %d, got %d votes that were all yes for a group", 6, votes)
 	}
 }
