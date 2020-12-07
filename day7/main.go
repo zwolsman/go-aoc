@@ -21,19 +21,20 @@ func part1(bags map[string][]*Bag) {
 }
 
 func part2(bags map[string][]*Bag) {
-	shinyGoldContents := traverse("shiny gold", bags)
+	var bagsInBag func(string) int
 
-	println(shinyGoldContents)
-}
-
-func traverse(bag string, bags map[string][]*Bag) (sum int) {
-	children := bags[bag]
-
-	for _, child := range children {
-		sum += child.num + (child.num * traverse(child.color, bags))
+	bagsInBag = func(bag string) (sum int) {
+		for _, child := range bags[bag] {
+			sum += child.num + (child.num * bagsInBag(child.color))
+		}
+		return
 	}
-	return
+
+	answer := bagsInBag("shiny gold")
+
+	println(answer)
 }
+
 func readBags() map[string][]*Bag {
 	file, err := os.Open("/Users/mzwolsman/Developer/go-aoc/day7/input.txt")
 	if err != nil {
