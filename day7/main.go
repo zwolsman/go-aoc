@@ -9,6 +9,17 @@ import (
 )
 
 func main() {
+	bags := readBags()
+
+	part1(bags)
+}
+
+func part1(bags map[string][]*Bag) {
+	result := find("shiny gold", bags)
+	println(len(result))
+}
+
+func readBags() map[string][]*Bag {
 	file, err := os.Open("/Users/mzwolsman/Developer/go-aoc/day7/input_2.txt")
 	if err != nil {
 		log.Fatal(err)
@@ -43,8 +54,7 @@ func main() {
 		bagMap[base] = children
 	}
 
-	result := find("shiny gold", bagMap)
-	println(len(result))
+	return bagMap
 }
 
 func unique(input []string) (keys []string) {
