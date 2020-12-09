@@ -7,11 +7,17 @@ import (
 	"strconv"
 )
 
+type NumRange = []int64
+
 func main() {
 	data := readInput()
+	part1(data)
+}
+
+func part1(data NumRange) {
 	preamble := 25
 
-	isValid := func(prev []int64, current int64) bool {
+	isValid := func(prev NumRange, current int64) bool {
 		for i, x := range prev {
 			for j, y := range prev {
 				if i == j {
@@ -35,7 +41,7 @@ func main() {
 	}
 }
 
-func readInput() []int64 {
+func readInput() NumRange {
 	var nums []int64
 	file, err := os.Open("/Users/mzwolsman/Developer/go-aoc/day9/input.txt")
 	if err != nil {
