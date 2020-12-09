@@ -4,14 +4,14 @@ import (
 	"bufio"
 	"log"
 	"os"
+	"sort"
 	"strconv"
 )
-
-type NumRange = []int64
 
 func main() {
 	data := readInput()
 	part1(data)
+	part2(data)
 }
 
 func part1(data NumRange) {
@@ -41,8 +41,47 @@ func part1(data NumRange) {
 	}
 }
 
+type NumRange []int64
+
+func (a NumRange) Len() int           { return len(a) }
+func (a NumRange) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a NumRange) Less(i, j int) bool { return a[i] < a[j] }
+
+func part2(data NumRange) {
+	for i := 2; i < len(data); i++ {
+		println("testing window", i)
+		if testWindow(data, i) {
+			break
+		}
+	}
+}
+func sum(d NumRange) (sum int64) {
+	for _, num := range d {
+		sum += num
+	}
+	return sum
+}
+
+func testWindow(data NumRange, window int) bool {
+	const target = 20874512
+
+	for i := window; i < len(data); i++ {
+		slidingWindow := data[i-window : i]
+		if sum(slidingWindow) == target {
+			println("found set")
+			sort.Sort(slidingWindow)
+			a := slidingWindow[0]
+			b := slidingWindow[window-1] // NOT 1931501367179
+			println("encryption weakness", a+b)
+			return true
+		}
+	}
+
+	return false
+}
+
 func readInput() NumRange {
-	var nums []int64
+	var nums NumRange
 	file, err := os.Open("/Users/mzwolsman/Developer/go-aoc/day9/input.txt")
 	if err != nil {
 		log.Fatal(err)
