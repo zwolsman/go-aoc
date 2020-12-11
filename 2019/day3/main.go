@@ -18,7 +18,9 @@ type Point struct {
 func (p Point) Add(a Point) Point {
 	return Point{p.x + a.x, p.y + a.y}
 }
-
+func (p Point) Minus(a Point) Point {
+	return Point{p.x - a.x, p.y - a.y}
+}
 func (p Point) String() string {
 	return fmt.Sprintf("(%d, %d)", p.x, p.y)
 }
@@ -129,6 +131,7 @@ func main() {
 	}
 
 	part1(wires)
+	part2(wires)
 }
 
 func part1(wires []PointArray) {
@@ -140,6 +143,26 @@ func part1(wires []PointArray) {
 
 	sort.Sort(intersections)
 	println(intersections[0].Length())
+}
+
+func part2(wires []PointArray) {
+	var options []int
+
+	calculateSteps := func(points PointArray) (sum int) {
+		for i := 0; i < len(points)-1; i++ {
+			a, b := points[i], points[i+1]
+			diff := a.Minus(b)
+			sum += diff.Length()
+		}
+		return
+	}
+
+	for _, step := range Intersections(wires...) {
+		a, b := calculateSteps(step[0]), calculateSteps(step[1])
+		options = append(options, a+b)
+	}
+	sort.Ints(options)
+	println(options[0])
 }
 
 func Intersections(wires ...PointArray) map[Point][]PointArray {
@@ -158,14 +181,22 @@ func Intersections(wires ...PointArray) map[Point][]PointArray {
 			a1, a2, b1, b2 := wireA[a], wireA[a+1], wireB[b], wireB[b+1]
 			i1, err := test(a1, a2, b1, b2)
 			if err == nil {
-				intersections[i1] = []PointArray{stepsA, stepsB}
+				intersections[i1] = createSteps(stepsA, stepsB)
 			}
 			i2, err := test(b1, b2, a1, a2)
 			if err == nil && i1 != i2 {
-				intersections[i2] = []PointArray{stepsA, stepsB}
+				intersections[i2] = createSteps(stepsA, stepsB)
 			}
 		}
 	}
 
 	return intersections
+}
+
+func createSteps(stepsA, stepsB PointArray) []PointArray {
+	a, b := make(PointArray, len(stepsA)), make(PointArray, len(stepsB))
+
+	copy(a, stepsA)
+	copy(b, stepsB)
+	return []PointArray{a, b}
 }
