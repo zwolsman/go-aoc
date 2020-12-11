@@ -143,9 +143,13 @@ func Intersections(wires ...PointArray) (intersections PointArray) {
 	for a := 0; a < len(wireA)-1; a++ {
 		for b := 0; b < len(wireB)-1; b++ {
 			a1, a2, b1, b2 := wireA[a], wireA[a+1], wireB[b], wireB[b+1]
-			intersection, err := test(a1, a2, b1, b2)
+			i1, err := test(a1, a2, b1, b2)
 			if err == nil {
-				intersections = append(intersections, intersection)
+				intersections = append(intersections, i1)
+			}
+			i2, err := test(b1, b2, a1, a2)
+			if err == nil && i1 != i2 {
+				intersections = append(intersections, i2)
 			}
 		}
 	}
