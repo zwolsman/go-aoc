@@ -23,7 +23,12 @@ func main() {
 
 	println("original state")
 	println(stringify(layout))
+	println("*** part 1 ***")
 	part1(layout)
+	println(stringify(layout))
+	println()
+	println("*** part 2 ***")
+	part2(layout)
 }
 
 func stringify(layout [][]string) (out string) {
@@ -59,9 +64,72 @@ func part1(layout [][]string) {
 		return strings.Join(output, "")
 	}
 
-	for true {
+	for {
 		println("simulation", i)
 		newLayout := simulate(layout, 4, adjacent)
+		i++
+
+		if str := stringify(newLayout); str == stringify(layout) {
+			println("stabalized!")
+			println("seats", strings.Count(str, "#"))
+			break
+		}
+		layout = newLayout
+	}
+}
+
+type Vector struct {
+	x, y int
+}
+
+func (v Vector) Add(a Vector) Vector {
+	return Vector{
+		v.x + a.x,
+		v.y + a.y,
+	}
+}
+
+func part2(layout [][]string) {
+
+	walk := func(pos, angle Vector) (string, bool) {
+		for {
+			pos = pos.Add(angle)
+
+			if pos.x < 0 || pos.x >= len(layout[0]) {
+				return "", false
+			}
+			if pos.y < 0 || pos.y >= len(layout) {
+				return "", false
+			}
+
+			if result := layout[pos.y][pos.x]; result != "." {
+				return result, true
+			}
+		}
+	}
+
+	adjacent := func(x, y int) string {
+		var output []string
+		pos := Vector{x, y}
+		for i := -1; i <= 1; i++ {
+			for j := -1; j <= 1; j++ {
+				if i == 0 && j == 0 {
+					continue
+				}
+				angle := Vector{i, j}
+
+				if result, ok := walk(pos, angle); ok {
+					output = append(output, result)
+				}
+			}
+		}
+		return strings.Join(output, "")
+	}
+
+	i := 0
+	for {
+		println("simulation", i)
+		newLayout := simulate(layout, 5, adjacent)
 		i++
 
 		if str := stringify(newLayout); str == stringify(layout) {
