@@ -41,7 +41,9 @@ func test(a1, a2, b1, b2 Point) (Point, error) {
 	y3, y4 := b1.y, b2.y
 
 	check := func(x, y int) bool {
-
+		if x == 0 && y == 0 {
+			return false
+		}
 		l1 := int(math.Min(float64(x1), float64(x2)))
 		l2 := int(math.Max(float64(x1), float64(x2)))
 
