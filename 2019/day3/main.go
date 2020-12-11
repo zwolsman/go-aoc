@@ -94,7 +94,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	var wires [][]Point
+	var wires []PointArray
 
 	for _, wire := range strings.Split(string(data), "\n") {
 		v := Point{0, 0}
@@ -126,13 +126,17 @@ func main() {
 		wires = append(wires, current)
 	}
 
+	part1(wires)
+}
+
+func part1(wires []PointArray) {
 	intersections := Intersections(wires...)
 
 	sort.Sort(intersections)
 	println(intersections[0].Length())
 }
 
-func Intersections(wires ...[]Point) (intersections PointArray) {
+func Intersections(wires ...PointArray) (intersections PointArray) {
 	wireA, wireB := wires[0], wires[1]
 	for a := 0; a < len(wireA)-1; a++ {
 		for b := 0; b < len(wireB)-1; b++ {
