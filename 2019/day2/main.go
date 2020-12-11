@@ -60,7 +60,7 @@ func fixProgram(noun, verb int, p Program) Program {
 }
 
 func runProgram(program Program) Program {
-	memory := make(Program, len(program)) //stop mutating the original state
+	memory := make(Program, len(program))
 	copy(memory, program)
 
 	for ptr := 0; program[ptr] != 99; {
