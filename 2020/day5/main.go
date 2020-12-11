@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	boardingPasses := readAllLines("/Users/mzwolsman/Developer/go-aoc/day5/input.txt")
+	boardingPasses := readAllLines("./2020/day5/input.txt")
 	part1(boardingPasses)
 	part2(boardingPasses)
 }

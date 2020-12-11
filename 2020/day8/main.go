@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	data, err := ioutil.ReadFile("/Users/mzwolsman/Developer/go-aoc/day8/input.txt")
+	data, err := ioutil.ReadFile("./2020/day8/input.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -18,10 +18,12 @@ func main() {
 	part1(instructions)
 	part2(instructions)
 }
+
 func part1(instructions []string) {
 	acc, _ := runProgram(instructions)
 	println(acc)
 }
+
 func part2(instructions []string) {
 	for i := 0; i < len(instructions); i++ {
 		newInstructions := mutateInstructions(instructions, i)

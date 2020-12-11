@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	data, _ := ioutil.ReadFile("/Users/mzwolsman/Developer/go-aoc/day6/input.txt")
+	data, _ := ioutil.ReadFile("./2020/day6/input.txt")
 	groups := Group(string(data))
 	part1(groups)
 	part2(groups)

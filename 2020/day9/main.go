@@ -82,7 +82,7 @@ func testWindow(data NumRange, window int) bool {
 
 func readInput() NumRange {
 	var nums NumRange
-	file, err := os.Open("/Users/mzwolsman/Developer/go-aoc/day9/input.txt")
+	file, err := os.Open("./2020/day9/input.txt")
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	lines := readAllLines("/Users/mzwolsman/Developer/go-aoc/day4/input.txt")
+	lines := readAllLines("./2020/day4/input.txt")
 
 	passports := parsePassports(lines)
 

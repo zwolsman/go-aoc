@@ -36,7 +36,7 @@ func part2(bags map[string][]*Bag) {
 }
 
 func readBags() map[string][]*Bag {
-	file, err := os.Open("/Users/mzwolsman/Developer/go-aoc/day7/input.txt")
+	file, err := os.Open("./2020/day7/input.txt")
 	if err != nil {
 		log.Fatal(err)
 	}

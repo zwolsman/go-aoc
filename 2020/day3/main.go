@@ -45,7 +45,7 @@ func treesEncountered(slope Slope, treeMap [][]bool) (treesEncountered int) {
 }
 
 func readTreeMap() (treeMap [][]bool) {
-	file, err := os.Open("/Users/mzwolsman/Developer/go-aoc/day3/input.txt")
+	file, err := os.Open("./2020/day3/input.txt")
 	if err != nil {
 		log.Fatal(err)
 	}

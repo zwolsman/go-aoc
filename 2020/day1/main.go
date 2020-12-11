@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	file, err := os.Open("/Users/mzwolsman/Developer/rts-ng/rts-ng/go-aoc/day1/input.txt")
+	file, err := os.Open("./2020/day1/input.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
