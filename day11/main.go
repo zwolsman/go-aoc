@@ -23,22 +23,7 @@ func main() {
 
 	println("original state")
 	println(stringify(layout))
-
-	i := 0
-	for true {
-		println("simulation", i)
-		newLayout := simulate(layout)
-		//println(stringify(layout))
-
-		i++
-
-		if str := stringify(newLayout); str == stringify(layout) {
-			println("stabalized!")
-			println("seats", strings.Count(str, "#"))
-			break
-		}
-		layout = newLayout
-	}
+	part1(layout)
 }
 
 func stringify(layout [][]string) (out string) {
@@ -48,9 +33,8 @@ func stringify(layout [][]string) (out string) {
 	return out
 }
 
-func simulate(in [][]string) [][]string {
-	out := make([][]string, len(in))
-	width := len(in[0])
+func part1(layout [][]string) {
+	i := 0
 
 	adjacent := func(x, y int) string {
 		var output []string
@@ -62,25 +46,42 @@ func simulate(in [][]string) [][]string {
 				newx := x + i
 				newy := y + j
 
-				if newx < 0 || newx >= width {
+				if newx < 0 || newx >= len(layout[0]) {
 					continue
 				}
-				if newy < 0 || newy >= len(in) {
+				if newy < 0 || newy >= len(layout) {
 					continue
 				}
 
-				output = append(output, in[newy][newx])
+				output = append(output, layout[newy][newx])
 			}
 		}
 		return strings.Join(output, "")
 	}
+
+	for true {
+		println("simulation", i)
+		newLayout := simulate(layout, 4, adjacent)
+		i++
+
+		if str := stringify(newLayout); str == stringify(layout) {
+			println("stabalized!")
+			println("seats", strings.Count(str, "#"))
+			break
+		}
+		layout = newLayout
+	}
+}
+
+func simulate(in [][]string, n int, adjacent func(int, int) string) [][]string {
+	out := make([][]string, len(in))
 
 	for y, row := range in {
 		newRow := make([]string, len(row))
 		for x, val := range row {
 			next := val
 			if val == "#" {
-				if strings.Count(adjacent(x, y), "#") >= 4 {
+				if strings.Count(adjacent(x, y), "#") >= n {
 					next = "L"
 				}
 			}
