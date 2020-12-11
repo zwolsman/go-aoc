@@ -132,26 +132,40 @@ func main() {
 }
 
 func part1(wires []PointArray) {
-	intersections := Intersections(wires...)
+	var intersections PointArray
+
+	for intersection, _ := range Intersections(wires...) {
+		intersections = append(intersections, intersection)
+	}
 
 	sort.Sort(intersections)
 	println(intersections[0].Length())
 }
 
-func Intersections(wires ...PointArray) (intersections PointArray) {
+func Intersections(wires ...PointArray) map[Point][]PointArray {
 	wireA, wireB := wires[0], wires[1]
+
+	stepsA := PointArray{wireA[0]}
+	intersections := make(map[Point][]PointArray)
+
 	for a := 0; a < len(wireA)-1; a++ {
+		stepsA = append(stepsA, wireA[a+1])
+		stepsB := PointArray{wireB[0]}
+
 		for b := 0; b < len(wireB)-1; b++ {
+			stepsB = append(stepsB, wireB[b+1])
+
 			a1, a2, b1, b2 := wireA[a], wireA[a+1], wireB[b], wireB[b+1]
 			i1, err := test(a1, a2, b1, b2)
 			if err == nil {
-				intersections = append(intersections, i1)
+				intersections[i1] = []PointArray{stepsA, stepsB}
 			}
 			i2, err := test(b1, b2, a1, a2)
 			if err == nil && i1 != i2 {
-				intersections = append(intersections, i2)
+				intersections[i2] = []PointArray{stepsA, stepsB}
 			}
 		}
 	}
-	return
+
+	return intersections
 }
