@@ -7,12 +7,6 @@ import (
 	"strings"
 )
 
-const HEIGHT = 98
-const WIDTH = 90
-
-//const HEIGHT = 10
-//const WIDTH = 10
-
 func main() {
 	file, err := os.Open("/Users/mzwolsman/Developer/go-aoc/day11/input.txt")
 	if err != nil {
@@ -20,94 +14,86 @@ func main() {
 	}
 
 	scanner := bufio.NewScanner(file)
-	var layout []string
+	var layout [][]string
 
 	for scanner.Scan() {
 		row := scanner.Text()
-		layout = append(layout, strings.Split(row, "")...)
+		layout = append(layout, strings.Split(row, ""))
 	}
 
-	prettyPrint(layout)
-	seats := strings.Count(strings.Join(layout, ""), "#")
+	println("original state")
+	println(stringify(layout))
+
 	i := 0
 	for true {
-		println("simulation", i+1)
-		layout = simulate(layout)
-		newSeats := strings.Count(strings.Join(layout, ""), "#")
-		println("seats occupied", newSeats)
+		println("simulation", i)
+		newLayout := simulate(layout)
+		//println(stringify(layout))
 
-		//prettyPrint(layout)
-		if newSeats == seats {
+		i++
+
+		if str := stringify(newLayout); str == stringify(layout) {
+			println("stabalized!")
+			println("seats", strings.Count(str, "#"))
 			break
 		}
-		seats = newSeats
-		i++
+		layout = newLayout
 	}
 }
 
-func prettyPrint(layout []string) {
-	for i := 0; i < HEIGHT; i++ {
-		slice := layout[i*WIDTH : i*WIDTH+WIDTH]
-		println(strings.Join(slice, ""))
+func stringify(layout [][]string) (out string) {
+	for _, row := range layout {
+		out += strings.Join(row, "") + "\n"
 	}
-	println()
+	return out
 }
 
-func simulate(in []string) []string {
-	out := make([]string, len(in))
+func simulate(in [][]string) [][]string {
+	out := make([][]string, len(in))
+	width := len(in[0])
 
-	adjacent := func(pos int) []string {
-		baseX, baseY := pos%HEIGHT, pos/HEIGHT
+	adjacent := func(x, y int) string {
 		var output []string
-		//println(pos, baseX, baseY)
 		for i := -1; i <= 1; i++ {
 			for j := -1; j <= 1; j++ {
 				if i == 0 && j == 0 {
 					continue
 				}
+				newx := x + i
+				newy := y + j
 
-				x, y := baseX+i, baseY+j
-
-				if x < 0 || y < 0 {
-					//println("TOO DAMN LOW", x, y)
+				if newx < 0 || newx >= width {
 					continue
 				}
-				if x >= HEIGHT || y >= WIDTH {
-					//println("TOO DAMN HIGH", x, y)
+				if newy < 0 || newy >= len(in) {
 					continue
 				}
-				newpos := y*HEIGHT + x
-				if newpos == 8820 {
-					println(pos, newpos, x, y)
-				}
-				output = append(output, in[newpos])
+
+				output = append(output, in[newy][newx])
 			}
 		}
-		return output
+		return strings.Join(output, "")
 	}
 
-	for pos, val := range in {
-		next := val
-		switch val {
-		case ".":
-			break
-		case "#":
-			adj := strings.Join(adjacent(pos), "")
-			if strings.Count(adj, "#") >= 4 {
-				next = "L"
+	for y, row := range in {
+		newRow := make([]string, len(row))
+		for x, val := range row {
+			next := val
+			if val == "#" {
+				if strings.Count(adjacent(x, y), "#") >= 4 {
+					next = "L"
+				}
 			}
-			break
-		case "L":
-			adj := strings.Join(adjacent(pos), "")
-			if !strings.Contains(adj, "#") {
-				next = "#"
-			}
-			break
-		default:
-			log.Fatal("can't handle", val)
-		}
 
-		out[pos] = next
+			if val == "L" {
+				if !strings.Contains(adjacent(x, y), "#") {
+					next = "#"
+				}
+			}
+
+			newRow[x] = next
+		}
+		out[y] = newRow
 	}
 	return out
 }
