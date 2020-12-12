@@ -15,23 +15,23 @@ func main() {
 	}
 	input := strings.Split(string(data), "-")
 	start, stop := parseRange(input)
-	part1(start, stop)
-}
-
-func part1(start, stop int) {
-	correctPasswords := 0
+	p1, p2 := 0, 0
 
 	for i := start; i <= stop; i++ {
 		str := fmt.Sprintf("%d", i)
-		if isValidPassword(str) {
-			correctPasswords++
+		if part1(str) {
+			p1++
+		}
+		if part2(str) {
+			p2++
 		}
 	}
 
-	println(correctPasswords)
+	println("part 1", p1)
+	println("part 2", p2)
 }
 
-func isValidPassword(password string) bool {
+func part1(password string) bool {
 	if len(password) != 6 {
 		return false
 	}
@@ -46,6 +46,30 @@ func isValidPassword(password string) bool {
 		}
 	}
 	return hasDouble
+}
+
+func part2(password string) bool {
+	if len(password) != 6 {
+		return false
+	}
+
+	groups := make(map[int32]int)
+	for i := 0; i < len(password)-1; i++ {
+		if password[i] > password[i+1] {
+			return false
+		}
+	}
+
+	for _, c := range password {
+		groups[c]++
+	}
+
+	for _, v := range groups {
+		if v == 2 {
+			return true
+		}
+	}
+	return false
 }
 
 func parseRange(input []string) (int, int) {
