@@ -151,7 +151,7 @@ func part2(wires []PointArray) {
 	calculateSteps := func(points PointArray) (sum int) {
 		for i := 0; i < len(points)-1; i++ {
 			a, b := points[i], points[i+1]
-			diff := a.Minus(b)
+			diff := b.Minus(a)
 			sum += diff.Length()
 		}
 		return
@@ -176,27 +176,28 @@ func Intersections(wires ...PointArray) map[Point][]PointArray {
 		stepsB := PointArray{wireB[0]}
 
 		for b := 0; b < len(wireB)-1; b++ {
-			stepsB = append(stepsB, wireB[b+1])
 
 			a1, a2, b1, b2 := wireA[a], wireA[a+1], wireB[b], wireB[b+1]
-			i1, err := test(a1, a2, b1, b2)
-			if err == nil {
-				intersections[i1] = createSteps(stepsA, stepsB)
+			i1, err1 := test(a1, a2, b1, b2)
+			if err1 == nil {
+				intersections[i1] = createSteps(stepsA, stepsB, i1)
 			}
-			i2, err := test(b1, b2, a1, a2)
-			if err == nil && i1 != i2 {
-				intersections[i2] = createSteps(stepsA, stepsB)
+			i2, err2 := test(b1, b2, a1, a2)
+			if err2 == nil && i1 != i2 {
+				intersections[i2] = createSteps(stepsA, stepsB, i2)
 			}
+			stepsB = append(stepsB, wireB[b+1])
 		}
 	}
 
 	return intersections
 }
 
-func createSteps(stepsA, stepsB PointArray) []PointArray {
-	a, b := make(PointArray, len(stepsA)), make(PointArray, len(stepsB))
+func createSteps(stepsA, stepsB PointArray, intersection Point) []PointArray {
+	a, b := make(PointArray, len(stepsA)), make(PointArray, len(stepsB)+1)
 
 	copy(a, stepsA)
 	copy(b, stepsB)
+	b[len(b)-1] = intersection
 	return []PointArray{a, b}
 }
