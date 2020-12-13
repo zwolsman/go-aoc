@@ -13,6 +13,11 @@ type Program struct {
 	code              intcode
 	memory            intcode
 	ptr, relativeBase int
+	chnl              chan int
+}
+
+func (p *Program) SetChannel(chnl chan int) {
+	p.chnl = chnl
 }
 
 func Read(path string) Program {
@@ -128,15 +133,23 @@ func (p Program) Run() intcode {
 		case 3: //INPUT
 			target := p.arg(p.readArgs(1)[0])
 			var input int
-			print("input: ")
-			_, err := fmt.Scan(&input)
-			if err != nil {
-				log.Fatal(err)
+			if p.chnl != nil {
+				input = <-p.chnl
+			} else {
+				print("input: ")
+				_, err := fmt.Scan(&input)
+				if err != nil {
+					log.Fatal(err)
+				}
 			}
 			p.memory[target] = input
 		case 4: //OUTPUT
-			args := p.readArgs(1)
-			fmt.Printf("%v\n", p.read(args[0]))
+			arg := p.read(p.readArgs(1)[0])
+			if p.chnl != nil {
+				p.chnl <- arg
+			} else {
+				fmt.Printf("%v\n", arg)
+			}
 		case 5:
 			args := p.readArgs(2)
 			x, jmp := p.read(args[0]), p.read(args[1])
