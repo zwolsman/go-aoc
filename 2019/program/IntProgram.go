@@ -8,121 +8,176 @@ import (
 	"strings"
 )
 
-type Program []int
+type intcode []int
+type Program struct {
+	code              intcode
+	memory            intcode
+	ptr, relativeBase int
+}
 
-func Read(path string) (program Program) {
+func Read(path string) Program {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		log.Fatal(err)
 	}
+	var instructions intcode
 	for _, code := range strings.Split(string(data), ",") {
 		opCode, err := strconv.Atoi(code)
 		if err != nil {
 			log.Fatal("error reading opcode", err, code)
 		}
-		program = append(program, opCode)
+		instructions = append(instructions, opCode)
 	}
 
-	return
+	return newProgram(instructions)
+}
+
+func newProgram(instructions intcode) Program {
+	memory := make(intcode, len(instructions)*10)
+	copy(memory, instructions)
+	return Program{
+		code:   instructions,
+		memory: memory,
+	}
 }
 
 func Fix(noun, verb int, p Program) Program {
-	p[1] = noun
-	p[2] = verb
+	p.memory[1] = noun
+	p.memory[2] = verb
 	return p
 }
 
-func Run(program Program) Program {
-	memory := make(Program, len(program))
-	copy(memory, program)
-	ptr := 0
+type Mode int
 
-	readArgs := func(mask int, num int, modes Modes) []int {
-		args := make([]int, num)
-		for i := 0; i < num; i++ {
-			arg := memory[ptr+i]
-			if modes[len(modes)-i-1] == 0 {
-				arg = memory[arg]
-			}
-			args[i] = arg
-		}
-		ptr += num
-		return args
-	}
-	read := func() int {
-		result := memory[ptr]
-		ptr++
-		return result
-	}
+const (
+	POSITION_MODE Mode = iota
+	IMMEDIATE_MODE
+	RELATIVE_MODE
+)
 
-	for memory[ptr] != 99 {
-		mask := read()
+type Argument struct {
+	mode          Mode
+	position, raw int
+}
+
+func (p *Program) read(argument Argument) int {
+	switch argument.mode {
+	case POSITION_MODE:
+		return p.memory[argument.raw]
+	case IMMEDIATE_MODE:
+		return argument.raw
+	case RELATIVE_MODE:
+		return p.memory[p.relativeBase+argument.raw]
+	}
+	log.Fatal("unknown argument type")
+	return -1
+}
+
+func (p *Program) arg(argument Argument) int {
+	switch argument.mode {
+	case POSITION_MODE, IMMEDIATE_MODE:
+		return argument.raw
+	case RELATIVE_MODE:
+		return p.relativeBase + argument.raw
+	}
+	log.Fatal("unknown argument type")
+	return -1
+}
+
+func (a Argument) String() string {
+	return fmt.Sprintf("Argument(%v, %d)", a.mode, a.raw)
+}
+
+func (m Mode) String() string {
+	return [...]string{"POSITION_MODE", "IMMEDIATE_MODE", "RELATIVE_MODE"}[m]
+}
+
+func (p *Program) readArgs(num int) []Argument {
+	mask := p.memory[p.ptr-1]
+	modes := readModes(mask, num)
+	args := make([]Argument, num)
+	for i := 0; i < num; i++ {
+		mode := modes[len(modes)-i-1]
+		args[i] = Argument{mode, p.ptr + i, p.memory[p.ptr+i]}
+	}
+	p.ptr += num
+	return args
+}
+
+func (p *Program) next() int {
+	n := p.memory[p.ptr]
+	p.ptr += 1
+	return n
+}
+func (p Program) Run() intcode {
+	for p.memory[p.ptr] != 99 {
+		mask := p.next()
 		opcode := readOpcode(mask)
 
 		switch opcode {
 		case 1:
-			modes := ReadModes(mask, 3)
-			args := readArgs(mask, 2, modes)
-			x, y, target := args[0], args[1], read()
-			memory[target] = x + y
+			args := p.readArgs(3)
+			x, y, target := p.read(args[0]), p.read(args[1]), p.arg(args[2])
+			p.memory[target] = x + y
 			break
 		case 2:
-			modes := ReadModes(mask, 3)
-			args := readArgs(mask, 2, modes)
-			x, y, target := args[0], args[1], read()
-			memory[target] = x * y
+			args := p.readArgs(3)
+			x, y, target := p.read(args[0]), p.read(args[1]), p.arg(args[2])
+			p.memory[target] = x * y
 			break
 		case 3: //INPUT
-			target := read()
+			target := p.arg(p.readArgs(1)[0])
 			var input int
 			print("input: ")
 			_, err := fmt.Scan(&input)
 			if err != nil {
 				log.Fatal(err)
 			}
-			memory[target] = input
+			p.memory[target] = input
 		case 4: //OUTPUT
-			modes := ReadModes(mask, 1)
-			args := readArgs(mask, 1, modes)
-			println(args[0])
+			args := p.readArgs(1)
+			fmt.Printf("%v\n", p.read(args[0]))
 		case 5:
-			modes := ReadModes(mask, 2)
-			args := readArgs(mask, 2, modes)
-			x, jmp := args[0], args[1]
+			args := p.readArgs(2)
+			x, jmp := p.read(args[0]), p.read(args[1])
 			if x != 0 {
-				ptr = jmp
+				p.ptr = jmp
 			}
 		case 6:
-			modes := ReadModes(mask, 2)
-			args := readArgs(mask, 2, modes)
-			x, jmp := args[0], args[1]
+			args := p.readArgs(2)
+			x, jmp := p.read(args[0]), p.read(args[1])
 			if x == 0 {
-				ptr = jmp
+				p.ptr = jmp
 			}
 		case 7:
-			modes := ReadModes(mask, 3)
-			args := readArgs(mask, 2, modes)
-			x, y, target := args[0], args[1], read()
+			args := p.readArgs(3)
+			x, y, target := p.read(args[0]), p.read(args[1]), p.arg(args[2])
 			if x < y {
-				memory[target] = 1
+				p.memory[target] = 1
 			} else {
-				memory[target] = 0
+				p.memory[target] = 0
 			}
 		case 8:
-			modes := ReadModes(mask, 3)
-			args := readArgs(mask, 2, modes)
-			x, y, target := args[0], args[1], read()
+			args := p.readArgs(3)
+			x, y, target := p.read(args[0]), p.read(args[1]), p.arg(args[2])
 			if x == y {
-				memory[target] = 1
+				p.memory[target] = 1
 			} else {
-				memory[target] = 0
+				p.memory[target] = 0
 			}
+		case 9:
+			args := p.readArgs(1)
+			p.relativeBase += p.read(args[0])
 		default:
-			println("weird opcode", ptr, opcode)
+			log.Fatal("unknown opcode at ", p.ptr, "opcode:", opcode)
 		}
 	}
 
-	return memory
+	return p.memory
+}
+
+func Run(program Program) intcode {
+	return program.Run()
 }
 
 func readOpcode(mask int) int {
@@ -137,14 +192,14 @@ func readOpcode(mask int) int {
 	return opcode
 }
 
-type Modes []int32
+type Modes []Mode
 
-func ReadModes(mask int, num int) Modes {
-	correct := make([]int32, num+2)
+func readModes(mask int, num int) Modes {
+	correct := make(Modes, num+2)
 
 	str := fmt.Sprintf("%d", mask)
 	for i, c := range str {
-		correct[len(correct)-len(str)+i] = c
+		correct[len(correct)-len(str)+i] = Mode(c)
 	}
 	correct = correct[0:num]
 	for i, v := range correct {
