@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -13,11 +14,8 @@ type Program struct {
 	code              intcode
 	memory            intcode
 	ptr, relativeBase int
-	chnl              chan int
-}
-
-func (p *Program) SetChannel(chnl chan int) {
-	p.chnl = chnl
+	In, Out           chan int
+	logger            *log.Logger
 }
 
 func Read(path string) Program {
@@ -37,12 +35,17 @@ func Read(path string) Program {
 	return newProgram(instructions)
 }
 
+func (p *Program) SetPrefix(prefix string) {
+	p.logger = log.New(os.Stderr, prefix, log.LstdFlags)
+}
+
 func newProgram(instructions intcode) Program {
 	memory := make(intcode, len(instructions)*10)
 	copy(memory, instructions)
 	return Program{
 		code:   instructions,
 		memory: memory,
+		logger: log.New(os.Stderr, "", log.LstdFlags),
 	}
 }
 
@@ -74,7 +77,7 @@ func (p *Program) read(argument Argument) int {
 	case RELATIVE_MODE:
 		return p.memory[p.relativeBase+argument.raw]
 	}
-	log.Fatal("unknown argument type")
+	p.logger.Fatal("unknown argument type")
 	return -1
 }
 
@@ -133,8 +136,10 @@ func (p Program) Run() intcode {
 		case 3: //INPUT
 			target := p.arg(p.readArgs(1)[0])
 			var input int
-			if p.chnl != nil {
-				input = <-p.chnl
+			if p.In != nil {
+				p.logger.Printf("receiving from channel")
+				input = <-p.In
+				p.logger.Printf("received, %d", input)
 			} else {
 				print("input: ")
 				_, err := fmt.Scan(&input)
@@ -145,8 +150,9 @@ func (p Program) Run() intcode {
 			p.memory[target] = input
 		case 4: //OUTPUT
 			arg := p.read(p.readArgs(1)[0])
-			if p.chnl != nil {
-				p.chnl <- arg
+			if p.Out != nil {
+				p.logger.Printf("sending to channel %v\n", arg)
+				p.Out <- arg
 			} else {
 				fmt.Printf("%v\n", arg)
 			}
@@ -182,10 +188,10 @@ func (p Program) Run() intcode {
 			args := p.readArgs(1)
 			p.relativeBase += p.read(args[0])
 		default:
-			log.Fatal("unknown opcode at ", p.ptr, "opcode:", opcode)
+			p.logger.Fatal("unknown opcode at ", p.ptr, "opcode:", opcode)
 		}
 	}
-
+	p.logger.Println("done")
 	return p.memory
 }
 
