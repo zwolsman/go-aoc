@@ -85,6 +85,38 @@ func Run(program Program) Program {
 			modes := ReadModes(mask, 1)
 			args := readArgs(mask, 1, modes)
 			println(args[0])
+		case 5:
+			modes := ReadModes(mask, 2)
+			args := readArgs(mask, 2, modes)
+			x, jmp := args[0], args[1]
+			if x != 0 {
+				ptr = jmp
+			}
+		case 6:
+			modes := ReadModes(mask, 2)
+			args := readArgs(mask, 2, modes)
+			x, jmp := args[0], args[1]
+			if x == 0 {
+				ptr = jmp
+			}
+		case 7:
+			modes := ReadModes(mask, 3)
+			args := readArgs(mask, 2, modes)
+			x, y, target := args[0], args[1], read()
+			if x < y {
+				memory[target] = 1
+			} else {
+				memory[target] = 0
+			}
+		case 8:
+			modes := ReadModes(mask, 3)
+			args := readArgs(mask, 2, modes)
+			x, y, target := args[0], args[1], read()
+			if x == y {
+				memory[target] = 1
+			} else {
+				memory[target] = 0
+			}
 		default:
 			println("weird opcode", ptr, opcode)
 		}
