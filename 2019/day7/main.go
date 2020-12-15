@@ -69,12 +69,12 @@ func runSequenceLoop(sequence []int) int {
 	}
 	amps[0].In = amps[len(amps)-1].Out
 
-	//Set amp 0 with ZERO once
-	amps[0].In <- 0
 	for i, init := range sequence {
 		log.Println("setting up amp", i, "with code", init)
 		amps[i].In <- init
 	}
+	//Set amp 0 with ZERO once
+	amps[0].In <- 0
 
 	wg := sync.WaitGroup{}
 	for i, amp := range amps {
