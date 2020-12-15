@@ -12,7 +12,7 @@ import (
 type intcode []int
 type Program struct {
 	code              intcode
-	memory            intcode
+	Memory            intcode
 	ptr, relativeBase int
 	In, Out           chan int
 	logger            *log.Logger
@@ -44,14 +44,14 @@ func newProgram(instructions intcode) Program {
 	copy(memory, instructions)
 	return Program{
 		code:   instructions,
-		memory: memory,
+		Memory: memory,
 		logger: log.New(os.Stderr, "", log.LstdFlags),
 	}
 }
 
 func Fix(noun, verb int, p Program) Program {
-	p.memory[1] = noun
-	p.memory[2] = verb
+	p.Memory[1] = noun
+	p.Memory[2] = verb
 	return p
 }
 
@@ -71,11 +71,11 @@ type Argument struct {
 func (p *Program) read(argument Argument) int {
 	switch argument.mode {
 	case POSITION_MODE:
-		return p.memory[argument.raw]
+		return p.Memory[argument.raw]
 	case IMMEDIATE_MODE:
 		return argument.raw
 	case RELATIVE_MODE:
-		return p.memory[p.relativeBase+argument.raw]
+		return p.Memory[p.relativeBase+argument.raw]
 	}
 	p.logger.Fatal("unknown argument type")
 	return -1
@@ -101,24 +101,24 @@ func (m Mode) String() string {
 }
 
 func (p *Program) readArgs(num int) []Argument {
-	mask := p.memory[p.ptr-1]
+	mask := p.Memory[p.ptr-1]
 	modes := readModes(mask, num)
 	args := make([]Argument, num)
 	for i := 0; i < num; i++ {
 		mode := modes[len(modes)-i-1]
-		args[i] = Argument{mode, p.ptr + i, p.memory[p.ptr+i]}
+		args[i] = Argument{mode, p.ptr + i, p.Memory[p.ptr+i]}
 	}
 	p.ptr += num
 	return args
 }
 
 func (p *Program) next() int {
-	n := p.memory[p.ptr]
+	n := p.Memory[p.ptr]
 	p.ptr += 1
 	return n
 }
 func (p Program) Run() intcode {
-	for p.memory[p.ptr] != 99 {
+	for p.Memory[p.ptr] != 99 {
 		mask := p.next()
 		opcode := readOpcode(mask)
 
@@ -126,32 +126,32 @@ func (p Program) Run() intcode {
 		case 1:
 			args := p.readArgs(3)
 			x, y, target := p.read(args[0]), p.read(args[1]), p.arg(args[2])
-			p.memory[target] = x + y
+			p.Memory[target] = x + y
 			break
 		case 2:
 			args := p.readArgs(3)
 			x, y, target := p.read(args[0]), p.read(args[1]), p.arg(args[2])
-			p.memory[target] = x * y
+			p.Memory[target] = x * y
 			break
 		case 3: //INPUT
 			target := p.arg(p.readArgs(1)[0])
 			var input int
 			if p.In != nil {
-				p.logger.Printf("receiving from channel")
+				//p.logger.Printf("receiving from channel")
 				input = <-p.In
-				p.logger.Printf("received, %d", input)
+				//p.logger.Printf("received, %d", input)
 			} else {
-				print("input: ")
+				//print("input: ")
 				_, err := fmt.Scan(&input)
 				if err != nil {
 					log.Fatal(err)
 				}
 			}
-			p.memory[target] = input
+			p.Memory[target] = input
 		case 4: //OUTPUT
 			arg := p.read(p.readArgs(1)[0])
 			if p.Out != nil {
-				p.logger.Printf("sending to channel %v\n", arg)
+				//p.logger.Printf("sending to channel %v\n", arg)
 				p.Out <- arg
 			} else {
 				fmt.Printf("%v\n", arg)
@@ -172,17 +172,17 @@ func (p Program) Run() intcode {
 			args := p.readArgs(3)
 			x, y, target := p.read(args[0]), p.read(args[1]), p.arg(args[2])
 			if x < y {
-				p.memory[target] = 1
+				p.Memory[target] = 1
 			} else {
-				p.memory[target] = 0
+				p.Memory[target] = 0
 			}
 		case 8:
 			args := p.readArgs(3)
 			x, y, target := p.read(args[0]), p.read(args[1]), p.arg(args[2])
 			if x == y {
-				p.memory[target] = 1
+				p.Memory[target] = 1
 			} else {
-				p.memory[target] = 0
+				p.Memory[target] = 0
 			}
 		case 9:
 			args := p.readArgs(1)
@@ -192,7 +192,7 @@ func (p Program) Run() intcode {
 		}
 	}
 	p.logger.Println("done")
-	return p.memory
+	return p.Memory
 }
 
 func Run(program Program) intcode {

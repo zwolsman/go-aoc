@@ -1,40 +1,82 @@
 package main
 
 import (
-	intprogram "../program"
-	"log"
+	"bufio"
+	"os"
 )
 
 func main() {
-	program := intprogram.Read("./2019/day13/input.txt")
-	out := make(chan int)
-	program.Out = out
+	//part1()
+	part2()
+}
 
-	go func() {
-		program.Run()
-		close(program.Out)
-	}()
+func part1() {
+	game := New()
+	game.Run()
 
 	totalBlocks := 0
-	for {
-		x, ok := <-out
-		if !ok {
-			break
+	for _, row := range game.screen {
+		for _, tile := range row {
+			if tile == BLOCK {
+				totalBlocks++
+			}
 		}
-		y, ok := <-out
-		if !ok {
-			break
-		}
-		tileId, ok := <-out
-		if !ok {
-			break
-		}
-
-		if tileId == 2 {
-			totalBlocks++
-		}
-		log.Printf("x: %d, y: %d, tileId: %d\n", x, y, tileId)
 	}
-
 	println("total blocks on the screen", totalBlocks)
+	println("score", game.score)
+}
+
+const (
+	left  = "\u001B[D"
+	right = "\u001B[C"
+)
+
+func part2() {
+
+	in := make(chan int)
+	game := New()
+
+	go calculateInput(in, game)
+	//go parseInput(in)
+	game.RunWithInput(in)
+}
+
+func calculateInput(in chan<- int, g *Game) {
+	scanner := bufio.NewScanner(os.Stdin)
+	paddle, ball := -1, -1
+	for scanner.Scan() {
+		for _, row := range g.screen {
+			for x, tile := range row {
+				if tile == BALL {
+					ball = x
+				}
+				if tile == HORIZONTAL_PADDLE {
+					paddle = x
+				}
+			}
+		}
+		if paddle < ball {
+			in <- 1
+		}
+		if paddle > ball {
+			in <- -1
+		}
+		if paddle == ball {
+			in <- 0
+		}
+	}
+}
+
+func parseInput(in chan<- int) {
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		switch scanner.Text() {
+		case left:
+			in <- -1
+		case right:
+			in <- 1
+		default:
+			in <- 0
+		}
+	}
 }
