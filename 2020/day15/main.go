@@ -23,19 +23,19 @@ func main() {
 		numbers = append(numbers, num)
 	}
 
-	part1(numbers)
+	play(numbers, 2020)
+	play(numbers, 30000000)
 }
 
-func part1(init []int) {
+func play(init []int, limit int) {
 
 	history := make(map[int][]int)
 	prev := make([]int, 2)
-	for turn := 0; turn < 2020; turn++ {
+	for turn := 0; turn < limit; turn++ {
 		if turn < len(init) {
 			next := init[turn]
 			history[next] = append(history[next], turn)
 			prev[0], prev[1] = next, prev[0]
-			println("turn", turn+1, next)
 			continue
 		}
 
@@ -51,7 +51,7 @@ func part1(init []int) {
 		}
 		history[next] = append(history[next], turn)
 		prev[0], prev[1] = next, prev[0]
-		println("turn", turn+1, next)
 	}
 
+	println(prev[0])
 }
