@@ -24,14 +24,16 @@ func main() {
 	part1(rules, nearbyTickets)
 }
 
-func part1(rules []validateFunction, nearbyTickets []ticket) {
+func part1(rules map[string][]validateFunction, nearbyTickets []ticket) {
 	ticketScanningErrorRate := 0
 
 	isValid := func(v int) bool {
 		any := false
-		for _, rule := range rules {
-			if rule(v) {
-				any = true
+		for _, validators := range rules {
+			for _, rule := range validators {
+				if rule(v) {
+					any = true
+				}
 			}
 		}
 		return any
@@ -65,31 +67,33 @@ func parseTickets(input string) (output []ticket) {
 	return
 }
 
-const ruleRegex = "(\\d+)\\-(\\d+)"
+const ruleRegex = "(\\w+): (\\d+)\\-(\\d+) or (\\d+)\\-(\\d+)"
 
-func parseRules(rules string) (validators []validateFunction) {
+func parseRules(data string) map[string][]validateFunction {
+	validators := make(map[string][]validateFunction)
 	regex, err := regexp.Compile(ruleRegex)
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, rule := range strings.Split(rules, "\n") {
-		groups := regex.FindAllStringSubmatch(rule, 2)
-		for _, validateRange := range groups {
-			validators = append(validators, toValidateFunction(validateRange))
+	rules := regex.FindAllStringSubmatch(data, -1)
+	for _, rule := range rules {
+		name := rule[1]
+		for i := 2; i < len(rule); i += 2 {
+			validators[name] = append(validators[name], toValidateFunction(rule[i:i+2]))
 		}
 	}
-	return
+	return validators
 }
 
 type validateFunction func(in int) bool
 type ticket []int
 
 func toValidateFunction(input []string) validateFunction {
-	min, err := strconv.Atoi(input[1])
+	min, err := strconv.Atoi(input[0])
 	if err != nil {
 		log.Fatal(err)
 	}
-	max, err := strconv.Atoi(input[2])
+	max, err := strconv.Atoi(input[1])
 	if err != nil {
 		log.Fatal(err)
 	}
