@@ -19,10 +19,8 @@ func main() {
 func runProgram() map[Vector]int {
 	program := intprogram.Read("./2019/day11/input.txt")
 
-	in := make(chan int, 1)
-	out := make(chan int)
-	program.In = in
-	program.Out = out
+	program.In = make(chan int)
+	program.Out = make(chan int)
 
 	pos := Vector{}
 	hull := make(map[Vector]int)
@@ -31,12 +29,12 @@ func runProgram() map[Vector]int {
 		for {
 			color, ok := hull[pos]
 			if !ok {
-				in <- white
+				program.In <- white
 			} else {
-				in <- color
+				program.In <- color
 			}
 
-			value, direction := <-out, <-out
+			value, direction := <-program.Out, <-program.Out
 
 			hull[pos] = value
 
