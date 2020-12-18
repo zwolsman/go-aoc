@@ -93,7 +93,7 @@ func (c *Calc) statement() {
 func (c *Calc) expression() {
 	c.term()
 
-	for tk, ok := c.generator.readNext(); ok && (tk.Kind == Plus || tk.Kind == Minus || tk.Kind == Multi || tk.Kind == Divi); tk, ok = c.generator.readNext() {
+	for tk, ok := c.generator.readNext(); ok && (tk.Kind == Multi || tk.Kind == Divi); tk, ok = c.generator.readNext() {
 		c.generator.next()
 		op := tk.Kind
 		c.term()
@@ -104,7 +104,7 @@ func (c *Calc) expression() {
 func (c *Calc) term() {
 	c.factor()
 
-	for tk, ok := c.generator.readNext(); ok && (tk.Kind == Multi || tk.Kind == Divi || tk.Kind == Plus || tk.Kind == Minus); tk, ok = c.generator.readNext() {
+	for tk, ok := c.generator.readNext(); ok && (tk.Kind == Plus || tk.Kind == Minus); tk, ok = c.generator.readNext() {
 		c.generator.next()
 		op := tk.Kind
 		c.factor()
