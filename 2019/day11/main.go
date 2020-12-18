@@ -5,9 +5,15 @@ import (
 	"math"
 )
 
+const (
+	black = iota
+	white
+)
+
 func main() {
 	hull := runProgram()
 	part1(hull)
+	part2(hull)
 }
 
 func runProgram() map[Vector]int {
@@ -23,8 +29,12 @@ func runProgram() map[Vector]int {
 	dir := Vector{x: 0, y: -1}
 	handleIO := func() {
 		for {
-			color := hull[pos]
-			in <- color
+			color, ok := hull[pos]
+			if !ok {
+				in <- white
+			} else {
+				in <- color
+			}
 
 			value, direction := <-out, <-out
 
@@ -47,6 +57,35 @@ func runProgram() map[Vector]int {
 
 func part1(hull map[Vector]int) {
 	println("Amount of panels painted at least once", len(hull))
+}
+
+func part2(hull map[Vector]int) {
+	mx, my := 0, 0
+	for v, _ := range hull {
+		if v.x > mx {
+			mx = v.x
+		}
+		if v.y > my {
+			my = v.y
+		}
+	}
+
+	for y := 0; y <= my; y++ {
+		for x := 0; x <= mx; x++ {
+			v := Vector{x, y}
+			color, ok := hull[v]
+			if !ok {
+				print(" ")
+				continue
+			}
+			if color == 1 {
+				print("#")
+			} else {
+				print(" ")
+			}
+		}
+		println()
+	}
 }
 
 type Vector struct {
