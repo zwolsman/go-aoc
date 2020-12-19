@@ -44,15 +44,20 @@ func main() {
 			}
 
 			temp := ""
+			shouldClose := false
 			success := true
 			for _, c := range strings.Split(str, " ") {
-				if c == "|" {
-					temp += c
-					continue
-				}
 				i, err := strconv.Atoi(c)
 				if err != nil {
-					log.Fatal(err)
+					if c == "+" {
+						temp = "(" + temp + ")+"
+					} else if c == "|" {
+						temp = "(" + temp + "|"
+						shouldClose = true
+					} else {
+						temp += c
+					}
+					continue
 				}
 
 				val, ok := dict[i]
@@ -61,48 +66,14 @@ func main() {
 					break
 				}
 
-				if strings.Contains(val, "|") {
-					val = "(" + val + ")"
-				}
 				temp += val
 			}
 
-			if ruleId == 8 {
-				rule42, ok := dict[42]
-				if !ok {
-					continue
-				}
-				rule8 := "(" + rule42 + ")+"
-				dict[8] = rule8
-				continue
+			if success && shouldClose {
+				temp += ")"
 			}
 
-			if ruleId == 11 {
-				rule42, ok := dict[42]
-				if !ok {
-					continue
-				}
-				rule31, ok := dict[31]
-				if !ok {
-					continue
-				}
-
-				rule11 := ""
-				for i := 0; i < 20; i++ {
-					rule11 += "(" + rule42
-				}
-
-				for i := 0; i < 20; i++ {
-					rule11 += rule31 + ")?"
-				}
-
-				rule11 = rule11[:len(rule11)-1]
-
-				dict[11] = rule11
-				continue
-			}
-
-			if success && ruleId != 8 && ruleId != 11 {
+			if success {
 				dict[ruleId] = temp
 			}
 		}
