@@ -78,7 +78,6 @@ func main() {
 			}
 
 			if ruleId == 11 {
-				rule11 := ""
 				rule42, ok := dict[42]
 				if !ok {
 					continue
@@ -88,19 +87,22 @@ func main() {
 					continue
 				}
 
-				for i := 0; i < 10; i++ {
-					rule11 += "(" + rule42 + "(" + rule42
+				rule11 := ""
+				for i := 0; i < 20; i++ {
+					rule11 += "(" + rule42
 				}
 
-				for i := 0; i < 10; i++ {
-					rule11 += rule31 + ")?" + rule31 + ")?"
+				for i := 0; i < 20; i++ {
+					rule11 += rule31 + ")?"
 				}
+
+				rule11 = rule11[:len(rule11)-1]
 
 				dict[11] = rule11
 				continue
 			}
 
-			if success {
+			if success && ruleId != 8 && ruleId != 11 {
 				dict[ruleId] = temp
 			}
 		}
