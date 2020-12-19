@@ -18,7 +18,7 @@ func main() {
 	readRules := strings.Split(strings.Split(text, "\n\n")[0], "\n")
 	messages := strings.Split(text, "\n\n")[1]
 
-	rules := make([]string, len(readRules))
+	rules := make(map[int]string)
 
 	for _, str := range readRules {
 		str = strings.ReplaceAll(str, "\"", "")
@@ -34,12 +34,12 @@ func main() {
 
 	for len(dict) < len(rules) {
 		fmt.Println(len(dict), len(rules))
-		for i, str := range rules {
-			if _, ok := dict[i]; ok {
+		for ruleId, str := range rules {
+			if _, ok := dict[ruleId]; ok {
 				continue
 			}
 			if str == "a" || str == "b" {
-				dict[i] = str
+				dict[ruleId] = str
 				continue
 			}
 
@@ -56,7 +56,6 @@ func main() {
 				}
 
 				val, ok := dict[i]
-
 				if !ok {
 					success = false
 					break
@@ -68,8 +67,41 @@ func main() {
 				temp += val
 			}
 
+			if ruleId == 8 {
+				rule42, ok := dict[42]
+				if !ok {
+					continue
+				}
+				rule8 := "(" + rule42 + ")+"
+				dict[8] = rule8
+				continue
+			}
+
+			if ruleId == 11 {
+				rule11 := ""
+				rule42, ok := dict[42]
+				if !ok {
+					continue
+				}
+				rule31, ok := dict[31]
+				if !ok {
+					continue
+				}
+
+				for i := 0; i < 10; i++ {
+					rule11 += "(" + rule42 + "(" + rule42
+				}
+
+				for i := 0; i < 10; i++ {
+					rule11 += rule31 + ")?" + rule31 + ")?"
+				}
+
+				dict[11] = rule11
+				continue
+			}
+
 			if success {
-				dict[i] = temp
+				dict[ruleId] = temp
 			}
 		}
 	}
