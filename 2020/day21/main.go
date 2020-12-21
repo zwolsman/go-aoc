@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -105,8 +106,20 @@ func main() {
 		}
 	}
 
-	fmt.Println(allergenMap)
+	var allergens []string
+	byAllergen := make(map[string]string)
+	for k, v := range allergenMap {
+		byAllergen[v] = k
+		allergens = append(allergens, v)
+	}
+	sort.Strings(allergens)
+
+	var dangerousIngredientList []string
+	for _, allergen := range allergens {
+		dangerousIngredientList = append(dangerousIngredientList, byAllergen[allergen])
+	}
 	fmt.Println(sum)
+	fmt.Println(strings.Join(dangerousIngredientList, ","))
 }
 
 type Food struct {
