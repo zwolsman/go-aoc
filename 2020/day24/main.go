@@ -16,11 +16,12 @@ func main() {
 
 	instructions := strings.Split(string(data), "\n")
 
-	part1(instructions)
+	tiles := part1(instructions)
+	part2(tiles)
 }
 
-func part1(instructions []string) {
-	tiles := make(map[Vector]struct{})
+func part1(instructions []string) Tiles {
+	tiles := make(Tiles)
 
 	for _, instruction := range instructions {
 		tile := followInstruction(instruction)
@@ -31,8 +32,45 @@ func part1(instructions []string) {
 		}
 	}
 
-	fmt.Printf("flipped %d tiles to black", len(tiles))
+	fmt.Printf("flipped %d tiles to black\n", len(tiles))
+	return tiles
 }
+
+func part2(tiles Tiles) {
+	for day := 1; day <= 100; day++ {
+		tiles = simulate(tiles)
+	}
+
+	println("How many tiles will be black after 100 days?", len(tiles))
+}
+
+func simulate(in Tiles) Tiles {
+	tiles := make(Tiles)
+	out := make(Tiles)
+
+	for t := range in {
+		for _, dir := range directions {
+			tiles[t.add(dir)] = struct{}{}
+		}
+	}
+
+	for t := range tiles {
+		blackTiles := 0
+		for _, dir := range directions {
+			if _, ok := in[t.add(dir)]; ok {
+				blackTiles++
+			}
+		}
+
+		if _, isBlack := in[t]; isBlack && (blackTiles == 1 || blackTiles == 2) || !isBlack && blackTiles == 2 {
+			out[t] = struct{}{}
+		}
+	}
+
+	return out
+}
+
+type Tiles map[Vector]struct{}
 
 var regex = regexp.MustCompile("((se|sw|nw|ne)|([ew]))")
 
