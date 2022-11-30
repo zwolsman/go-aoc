@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	file, err := os.Open("./2019/day1/input.txt")
+	file, err := os.Open("./2022/day1/input.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
