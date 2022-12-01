@@ -1,22 +1,19 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
-	"log"
-	"os"
 	"sort"
 	"strconv"
 	"strings"
 )
 
-func main() {
-	file, err := os.ReadFile("./2022/day01/input.txt")
-	if err != nil {
-		log.Fatal(err)
-	}
+//go:embed input.txt
+var in []byte
 
-	fmt.Println(part1(file))
-	fmt.Println(part2(file))
+func main() {
+	fmt.Println(part1(in))
+	fmt.Println(part2(in))
 }
 
 func part1(in []byte) int {
@@ -58,6 +55,5 @@ func part2(in []byte) int {
 	elves = append(elves, sum)
 
 	sort.Ints(elves)
-	fmt.Println(elves)
 	return elves[len(elves)-1] + elves[len(elves)-2] + elves[len(elves)-3]
 }
