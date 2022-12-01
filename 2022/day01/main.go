@@ -55,7 +55,9 @@ func part2(in []byte) int {
 			sum += n
 		}
 	}
-	sort.Ints(elves)
+	elves = append(elves, sum)
 
+	sort.Ints(elves)
+	fmt.Println(elves)
 	return elves[len(elves)-1] + elves[len(elves)-2] + elves[len(elves)-3]
 }
