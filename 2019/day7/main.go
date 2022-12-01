@@ -1,8 +1,8 @@
 package main
 
 import (
-	intprogram "../program"
 	"fmt"
+	intprogram "github.com/zwolsman/go-aoc/2019/program"
 	"log"
 	"sync"
 )

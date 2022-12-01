@@ -1,7 +1,7 @@
 package main
 
 import (
-	intprogram "../program"
+	intprogram "github.com/zwolsman/go-aoc/2019/program"
 	"math"
 )
 
