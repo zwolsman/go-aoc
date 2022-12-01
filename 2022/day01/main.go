@@ -1,29 +1,32 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"log"
 	"os"
 	"sort"
 	"strconv"
+	"strings"
 )
 
 func main() {
-	file, err := os.Open("./2022/day01/input.txt")
+	file, err := os.ReadFile("./2022/day01/input.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
-	scanner := bufio.NewScanner(file)
 
+	fmt.Println(part1(file))
+	fmt.Println(part2(file))
+}
+
+func part1(in []byte) int {
 	var sum, max int
-	var elves []int
+	lines := strings.Split(string(in), "\n")
 
-	for scanner.Scan() {
-		line := scanner.Text()
+	for i := 0; i < len(lines); i++ {
+		line := lines[i]
 		n, _ := strconv.Atoi(line)
 		if line == "" {
-			elves = append(elves, sum)
 			sum = 0
 		} else {
 			sum += n
@@ -32,8 +35,27 @@ func main() {
 			}
 		}
 	}
-	sort.Ints(elves)
-	fmt.Println(elves[len(elves)-1])
 
-	fmt.Println(elves[len(elves)-1] + elves[len(elves)-2] + elves[len(elves)-3])
+	return max
+}
+
+func part2(in []byte) int {
+	var elves []int
+	var sum int
+
+	lines := strings.Split(string(in), "\n")
+
+	for i := 0; i < len(lines); i++ {
+		line := lines[i]
+		n, _ := strconv.Atoi(line)
+		if line == "" {
+			elves = append(elves, sum)
+			sum = 0
+		} else {
+			sum += n
+		}
+	}
+	sort.Ints(elves)
+
+	return elves[len(elves)-1] + elves[len(elves)-2] + elves[len(elves)-3]
 }
