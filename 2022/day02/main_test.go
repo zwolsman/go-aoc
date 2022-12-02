@@ -14,7 +14,7 @@ func Test_part1(t *testing.T) {
 	}{
 		{
 			name: "example",
-			want: nil,
+			want: 15,
 		},
 	}
 	for _, tt := range tests {
@@ -34,7 +34,7 @@ func Test_part2(t *testing.T) {
 	}{
 		{
 			name: "example",
-			want: nil,
+			want: 12,
 		},
 	}
 	for _, tt := range tests {
