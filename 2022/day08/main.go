@@ -3,6 +3,7 @@ package main
 import (
 	_ "embed"
 	"fmt"
+	"github.com/zwolsman/go-aoc/common"
 	"math"
 	"strings"
 )
@@ -18,9 +19,9 @@ func main() {
 func part1(in []byte) int {
 	m := readMap(in)
 
-	var walk func(base, dir vector, h int) bool
-	walk = func(base, dir vector, h int) bool {
-		cur := base.plus(dir)
+	var walk func(base, dir common.Vector, h int) bool
+	walk = func(base, dir common.Vector, h int) bool {
+		cur := base.Plus(dir)
 
 		v, ok := m[cur]
 		if !ok { // got to the edge
@@ -37,7 +38,7 @@ func part1(in []byte) int {
 	bound := int(math.Sqrt(float64(len(m)))) - 1
 	var sum int
 	for base, h := range m {
-		if base.y == 0 || base.y == bound || base.x == 0 || base.x == bound {
+		if base.Y == 0 || base.Y == bound || base.X == 0 || base.X == bound {
 			sum++
 			continue
 		}
@@ -76,9 +77,9 @@ func mask(arr []int) []int {
 func part2(in []byte) int {
 	m := readMap(in)
 
-	var walk func(base, dir vector, h int) int
-	walk = func(base, dir vector, h int) int {
-		cur := base.plus(dir)
+	var walk func(base, dir common.Vector, h int) int
+	walk = func(base, dir common.Vector, h int) int {
+		cur := base.Plus(dir)
 
 		v, ok := m[cur]
 		if !ok { // got to the edge
@@ -107,36 +108,21 @@ func part2(in []byte) int {
 	return top
 }
 
-func readMap(in []byte) map[vector]int {
+func readMap(in []byte) map[common.Vector]int {
 	lines := strings.Split(string(in), "\n")
-	out := make(map[vector]int)
+	out := make(map[common.Vector]int)
 
 	for y, row := range lines {
 		for x, h := range row {
-			out[vector{x, y}] = int(h - '0')
+			out[common.Vector{X: x, Y: y}] = int(h - '0')
 		}
 	}
 	return out
 }
 
-var ops = []vector{
+var ops = []common.Vector{
 	{0, 1},  // down
 	{0, -1}, // up
 	{1, 0},  // right
 	{-1, 0}, //left
-}
-
-type vector struct {
-	x, y int
-}
-
-func (v vector) plus(o vector) vector {
-	return vector{
-		v.x + o.x,
-		v.y + o.y,
-	}
-}
-
-func (v vector) String() string {
-	return fmt.Sprintf("vector{x: %d, y: %d}", v.x, v.y)
 }
