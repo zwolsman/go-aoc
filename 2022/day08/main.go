@@ -3,6 +3,7 @@ package main
 import (
 	_ "embed"
 	"fmt"
+	"math"
 	"strings"
 )
 
@@ -15,78 +16,127 @@ func main() {
 }
 
 func part1(in []byte) int {
-	m := createMap(in)
-	var rows [][]int
-	var cols [][]int
+	m := readMap(in)
 
-	for _, r := range m {
-		rows = append(rows, mask(r))
-	}
+	var walk func(base, dir vector, h int) bool
+	walk = func(base, dir vector, h int) bool {
+		cur := base.plus(dir)
 
-	for i := 0; i < len(m); i++ {
-		var out []int
-		for j := 0; j < len(m); j++ {
-			out = append(out, m[j][i])
+		v, ok := m[cur]
+		if !ok { // got to the edge
+			return true
 		}
-		cols = append(cols, mask(out))
-	}
 
-	for i := 0; i < len(rows)*len(cols); i++ {
-		x := i % len(rows)
-		y := i / len(cols)
-
-		if rows[y][x] > 0 || cols[x][y] > 0 {
-			m[y][x] = 1
-		} else {
-			m[y][x] = 0
+		if v >= h {
+			return false
 		}
+
+		return walk(cur, dir, h)
 	}
 
+	bound := int(math.Sqrt(float64(len(m)))) - 1
 	var sum int
+	for base, h := range m {
+		if base.y == 0 || base.y == bound || base.x == 0 || base.x == bound {
+			sum++
+			continue
+		}
 
-	for _, arr := range m {
-		for _, v := range arr {
-			sum += v
+		for _, op := range ops {
+			if walk(base, op, h) {
+				sum++
+				break
+			}
 		}
 	}
+
 	return sum
 }
 
 func mask(arr []int) []int {
 	out := make([]int, len(arr))
 
-	left, right := -1, -1
+	high := -1
 	for i := 0; i < len(arr); i++ {
-
-		if n := arr[i]; n > left {
-			out[i] += 1
-			left = n
-		}
-
-		j := len(arr) - i - 1
-		if n := arr[j]; n > right {
-			out[j] += 1
-			right = n
+		if n := arr[i]; n > high {
+			out[i] = i
+			high = n
+		} else {
+			for j := i - 1; j > 0; j-- {
+				if arr[j] >= n {
+					out[i] = i - j - 1
+					break
+				}
+			}
 		}
 	}
-
 	return out
 }
 
-func part2(in []byte) any {
-	return nil
+func part2(in []byte) int {
+	m := readMap(in)
+
+	var walk func(base, dir vector, h int) int
+	walk = func(base, dir vector, h int) int {
+		cur := base.plus(dir)
+
+		v, ok := m[cur]
+		if !ok { // got to the edge
+			return 0
+		}
+
+		if v >= h {
+			return 1
+		}
+
+		return 1 + walk(cur, dir, h)
+	}
+
+	top := -1
+	for base, h := range m {
+		score := 1
+		for _, op := range ops {
+			score *= walk(base, op, h)
+		}
+
+		if score > top {
+			top = score
+		}
+	}
+
+	return top
 }
 
-func createMap(in []byte) [][]int {
+func readMap(in []byte) map[vector]int {
 	lines := strings.Split(string(in), "\n")
-	grid := make([][]int, len(lines))
+	out := make(map[vector]int)
 
-	for i, row := range lines {
-		r := make([]int, len(row))
-		for j, h := range row {
-			r[j] = int(h - '0')
+	for y, row := range lines {
+		for x, h := range row {
+			out[vector{x, y}] = int(h - '0')
 		}
-		grid[i] = r
 	}
-	return grid
+	return out
+}
+
+var ops = []vector{
+	{0, 1},  // down
+	{0, -1}, // up
+	{1, 0},  // right
+	{-1, 0}, //left
+}
+
+type vector struct {
+	x, y int
+}
+
+func (v vector) plus(o vector) vector {
+	return vector{
+		v.x + o.x,
+		v.y + o.y,
+	}
+}
+
+func (v vector) String() string {
+	return fmt.Sprintf("vector{x: %d, y: %d}", v.x, v.y)
 }
