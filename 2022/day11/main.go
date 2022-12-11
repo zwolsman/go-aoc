@@ -29,10 +29,12 @@ func part2(monkeys []*monkey) int {
 }
 
 func run(monkeys []*monkey, rounds int, reduce func(int) int) int {
+	inspections := make([]int, len(monkeys))
+
 	for i := 0; i < rounds; i++ {
-		for _, m := range monkeys {
+		for id, m := range monkeys {
 			for _, item := range m.items {
-				m.inspections++
+				inspections[id]++
 				item = reduce(m.operation(item))
 
 				var receiver *monkey
@@ -47,11 +49,6 @@ func run(monkeys []*monkey, rounds int, reduce func(int) int) int {
 
 			m.items = []item{}
 		}
-	}
-
-	var inspections []int
-	for _, m := range monkeys {
-		inspections = append(inspections, m.inspections)
 	}
 
 	sort.Ints(inspections)
@@ -165,9 +162,8 @@ func createMonkeys() []*monkey {
 
 type item = int
 type monkey struct {
-	items       []item
-	inspections int
-	operation   func(item) item
-	test        int
-	chain       [2]*monkey
+	items     []item
+	operation func(item) item
+	test      int
+	chain     [2]*monkey
 }
