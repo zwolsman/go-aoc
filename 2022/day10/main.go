@@ -3,7 +3,6 @@ package main
 import (
 	_ "embed"
 	"fmt"
-	"math"
 	"strconv"
 	"strings"
 )
@@ -16,27 +15,32 @@ func main() {
 	fmt.Println(part2(in))
 }
 
-var cycles = []int{
-	20,
-	60,
-	100,
-	140,
-	180,
-	220,
-	math.MaxInt,
+func part1(in []byte) int {
+	program := run(in)
+	var sum int
+
+	for i := 0; i <= 5; i++ {
+		c := 20 + (40 * i)
+
+		n, ok := program[c]
+		if !ok {
+			n = program[c-1]
+		}
+
+		sum += n * c
+	}
+
+	return sum
 }
 
-func part1(in []byte) int {
-	cycle, register, sum := 1, 1, 0
+func part2(in []byte) any {
+	return nil
+}
 
-	nextCycle := func() {
-		cycle++
-		if cycle == cycles[0] {
-			multiplier := cycles[0]
-			cycles = cycles[1:]
-			sum += register * multiplier
-		}
-	}
+func run(in []byte) map[int]int {
+	cycle := 1
+	register := 1
+	program := make(map[int]int)
 
 	for _, instruction := range strings.Split(string(in), "\n") {
 		cmd, arg, _ := strings.Cut(instruction, " ")
@@ -47,17 +51,15 @@ func part1(in []byte) int {
 			if err != nil {
 				panic(err)
 			}
-			nextCycle()
 			register += n
+			cycle += 2
 		case "noop":
+			cycle++
 			break
 		}
 
-		nextCycle()
+		program[cycle] = register
 	}
-	return sum
-}
 
-func part2(in []byte) any {
-	return nil
+	return program
 }
