@@ -6,6 +6,44 @@ import (
 )
 
 func Test_part1(t *testing.T) {
+	tests := []struct {
+		name string
+		want int
+	}{
+		{
+			name: "example",
+			want: 10605,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := part1(createTestMonkeys()); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("part1() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_part2(t *testing.T) {
+	tests := []struct {
+		name string
+		want int
+	}{
+		{
+			name: "example",
+			want: 2_713_310_158,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := part2(createTestMonkeys()); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("part2() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func createTestMonkeys() []*monkey {
 	var (
 		m0 = monkey{
 			items: []int{79, 98},
@@ -54,25 +92,5 @@ func Test_part1(t *testing.T) {
 		&m0,
 		&m1,
 	}
-
-	tests := []struct {
-		name string
-		in   []*monkey
-		want int
-	}{
-		{
-			name: "example",
-			in: []*monkey{
-				&m0, &m1, &m2, &m3,
-			},
-			want: 10605,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := part1(tt.in); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("part1() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+	return []*monkey{&m0, &m1, &m2, &m3}
 }
