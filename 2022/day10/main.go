@@ -33,15 +33,44 @@ func part1(in []byte) int {
 	return sum
 }
 
-func part2(in []byte) any {
-	return nil
+func part2(in []byte) string {
+	program := run(in)
+	var out string
+	for i := 0; i < 40*6; i++ {
+		x := i % 40
+
+		if x == 0 {
+			out += "\n"
+		}
+
+		position := read(i+1, program)
+
+		if x >= position-1 && x <= position+1 {
+			out += "#"
+		} else {
+			out += "."
+		}
+	}
+
+	return out
 }
 
-func run(in []byte) map[int]int {
+type program = map[int]int
+
+func read(cycle int, p program) int {
+	n, ok := p[cycle]
+	if !ok {
+		n = p[cycle-1]
+	}
+	return n
+}
+
+func run(in []byte) program {
 	cycle := 1
 	register := 1
-	program := make(map[int]int)
+	p := make(program)
 
+	p[cycle] = register
 	for _, instruction := range strings.Split(string(in), "\n") {
 		cmd, arg, _ := strings.Cut(instruction, " ")
 
@@ -58,8 +87,8 @@ func run(in []byte) map[int]int {
 			break
 		}
 
-		program[cycle] = register
+		p[cycle] = register
 	}
 
-	return program
+	return p
 }
