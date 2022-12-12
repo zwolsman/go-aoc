@@ -32,3 +32,25 @@ func Test_part1(t *testing.T) {
 		})
 	}
 }
+
+func Test_part2(t *testing.T) {
+	tests := []struct {
+		name string
+		file string
+		want int
+	}{
+		{
+			name: "example",
+			file: "input_test.txt",
+			want: 29,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			in, _ := os.ReadFile(tt.file)
+			if got := part2(in); got != tt.want {
+				t.Errorf("part2() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
