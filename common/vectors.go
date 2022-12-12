@@ -5,6 +5,15 @@ import (
 	"math"
 )
 
+var (
+	Left  = Vector{1, 0}
+	Right = Vector{-1, 0}
+	Up    = Vector{0, -1}
+	Down  = Vector{0, 1}
+
+	LRUD = [4]Vector{Left, Right, Up, Down}
+)
+
 type Vector struct {
 	X, Y int
 }
