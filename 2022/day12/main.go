@@ -17,7 +17,7 @@ func main() {
 
 func part1(in []byte) int {
 	m := common.ReadMap(in, 0)
-
+	w := m.Width()
 	origin, found := m.Find('S')
 	if !found {
 		panic("couldn't find starting position")
@@ -32,6 +32,17 @@ func part1(in []byte) int {
 	m[origin] = 'a'
 	m[target] = 'z'
 
+	graph := createGraph(m)
+	path, err := graph.Shortest(id(w, origin), id(w, target))
+
+	if err != nil {
+		panic(err)
+	}
+
+	return int(path.Distance)
+}
+
+func createGraph(m common.Map2D) *dijkstra.Graph {
 	w := m.Width()
 	graph := dijkstra.NewGraph()
 	for p, _ := range m {
@@ -57,13 +68,7 @@ func part1(in []byte) int {
 		}
 	}
 
-	path, err := graph.Shortest(id(w, origin), id(w, target))
-
-	if err != nil {
-		panic(err)
-	}
-
-	return int(path.Distance)
+	return graph
 }
 
 func id(width int, v common.Vector) int {

@@ -27,6 +27,16 @@ func (m Map2D) Find(item int) (Vector, bool) {
 	return Vector{}, false
 }
 
+func (m Map2D) FindAll(item int) []Vector {
+	var out []Vector
+	for pos, v := range m {
+		if v == item {
+			out = append(out, pos)
+		}
+	}
+	return out
+}
+
 func (m Map2D) Copy() Map2D {
 	cp := make(Map2D, len(m))
 	for k, v := range m {
