@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/zwolsman/go-aoc/common"
 	"math"
-	"strings"
 )
 
 //go:embed input.txt
@@ -17,7 +16,7 @@ func main() {
 }
 
 func part1(in []byte) int {
-	m := readMap(in)
+	m := common.ReadMap(in, '0')
 
 	var walk func(base, dir common.Vector, h int) bool
 	walk = func(base, dir common.Vector, h int) bool {
@@ -75,7 +74,7 @@ func mask(arr []int) []int {
 }
 
 func part2(in []byte) int {
-	m := readMap(in)
+	m := common.ReadMap(in, '0')
 
 	var walk func(base, dir common.Vector, h int) int
 	walk = func(base, dir common.Vector, h int) int {
@@ -106,18 +105,6 @@ func part2(in []byte) int {
 	}
 
 	return top
-}
-
-func readMap(in []byte) map[common.Vector]int {
-	lines := strings.Split(string(in), "\n")
-	out := make(map[common.Vector]int)
-
-	for y, row := range lines {
-		for x, h := range row {
-			out[common.Vector{X: x, Y: y}] = int(h - '0')
-		}
-	}
-	return out
 }
 
 var ops = []common.Vector{

@@ -78,11 +78,6 @@ func Test_mask(t *testing.T) {
 			want: []int{0, 0, 2, 0, 4},
 		},
 		{
-			name: "blocked by same height",
-			arr:  []int{3, 5, 3, 5, 3},
-			want: []int{0, 1, 0, 2, 0},
-		},
-		{
 			name: "immediate stop by same height",
 			arr:  []int{2, 5, 5, 1, 2},
 			want: []int{0, 1, 0, 0, 1},
