@@ -3,6 +3,8 @@ package main
 import (
 	_ "embed"
 	"fmt"
+	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -16,17 +18,7 @@ func main() {
 }
 
 func part1(in []byte) any {
-	var packets []packet
-
-	for _, line := range strings.Split(string(in), "\n") {
-		if line == "" {
-			continue
-		}
-
-		packet, _ := parsePacket(line[1:])
-		packets = append(packets, packet)
-	}
-
+	packets := readPackets(in)
 	var validIndices int
 	for i := 0; i < len(packets); i += 2 {
 		n := i/2 + 1
@@ -42,7 +34,38 @@ func part1(in []byte) any {
 }
 
 func part2(in []byte) any {
-	return nil
+	allPackets := readPackets(in)
+
+	dividerPackets := packets{
+		packet{packet{2}},
+		packet{packet{6}},
+	}
+
+	allPackets = append(allPackets, dividerPackets...)
+	sort.Sort(allPackets)
+	decoderKey := 1
+	for i, p := range allPackets {
+
+		if reflect.DeepEqual(p, dividerPackets[0]) || reflect.DeepEqual(p, dividerPackets[1]) {
+			decoderKey *= i + 1
+		}
+	}
+	return decoderKey
+}
+
+func readPackets(in []byte) packets {
+	var packets packets
+
+	for _, line := range strings.Split(string(in), "\n") {
+		if line == "" {
+			continue
+		}
+
+		packet, _ := parsePacket(line[1:])
+		packets = append(packets, packet)
+	}
+
+	return packets
 }
 
 const (
@@ -96,7 +119,7 @@ func verify(a, b packet) int {
 	return orderState
 }
 
-type packet = []any
+type packet []any
 
 func parsePacket(line string) (packet, int) {
 	var raw string
@@ -128,4 +151,13 @@ func parsePacket(line string) (packet, int) {
 	}
 
 	return result, len(line)
+}
+
+type packets []packet
+
+func (p packets) Len() int      { return len(p) }
+func (p packets) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
+func (p packets) Less(i, j int) bool {
+	order := verify(p[i], p[j])
+	return order == CORRECT
 }
