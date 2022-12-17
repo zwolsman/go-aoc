@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 	"github.com/zwolsman/go-aoc/common"
+	"math"
 	"strconv"
 	"strings"
 )
@@ -47,7 +48,7 @@ func run(in []byte, size int) int {
 				head := rope[j-1]
 				tail := rope[j]
 
-				if head.Dist(tail) > 1 {
+				if dist(head, tail) > 1 {
 					move := head.Min(tail).Normalize()
 					rope[j] = tail.Plus(move)
 				}
@@ -57,4 +58,10 @@ func run(in []byte, size int) int {
 	}
 
 	return len(history)
+}
+
+func dist(v, o common.Vector) float64 {
+	x := math.Abs(float64(v.X - o.X))
+	y := math.Abs(float64(v.Y - o.Y))
+	return math.Max(x, y)
 }

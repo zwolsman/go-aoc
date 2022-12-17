@@ -65,10 +65,10 @@ func (v Vector) Times(n int) Vector {
 	}
 }
 
-func (v Vector) Dist(o Vector) float64 {
-	x := math.Abs(float64(v.X - o.X))
-	y := math.Abs(float64(v.Y - o.Y))
-	return math.Max(x, y)
+// Dist returns the Manhattan distance from v to o
+// |X1 – X2| + |Y1 – Y2|
+func (v Vector) Dist(o Vector) int {
+	return int(math.Abs(float64(o.X-v.X)) + math.Abs(float64(o.Y-v.Y)))
 }
 
 func (v Vector) Normalize() Vector {
