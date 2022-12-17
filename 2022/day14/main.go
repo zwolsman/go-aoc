@@ -15,11 +15,72 @@ func main() {
 	fmt.Println(part2(in))
 }
 
-func part1(in []byte) any {
+var sandSpawn = common.Vector{X: 500}
 
-	sandSpawn := common.Vector{X: 500}
+func part1(in []byte) any {
 	sand := sandSpawn.Copy()
 
+	rocks, highestY := readMap(in)
+	placedSand := make(map[common.Vector]int)
+
+	for sand.Y <= highestY+1 {
+		next, found := findNextOption(sand, placedSand, func(pos common.Vector) bool {
+			for _, path := range rocks {
+				if path.Intersects(pos) {
+					return false
+				}
+			}
+			return true
+		})
+
+		if !found {
+			placedSand[sand]++
+			sand = sandSpawn.Copy()
+			continue
+		}
+
+		sand = next
+	}
+
+	return len(placedSand)
+}
+
+func part2(in []byte) int {
+	sand := sandSpawn.Copy()
+
+	rocks, highestY := readMap(in)
+	placedSand := make(map[common.Vector]int)
+
+	for {
+		next, found := findNextOption(sand, placedSand, func(pos common.Vector) bool {
+			if pos.Y == highestY+2 {
+				return false
+			}
+
+			for _, path := range rocks {
+				if path.Intersects(pos) {
+					return false
+				}
+			}
+			return true
+		})
+
+		if !found {
+			placedSand[sand]++
+			if sand == sandSpawn {
+				break
+			}
+			sand = sandSpawn.Copy()
+			continue
+		}
+
+		sand = next
+	}
+
+	return len(placedSand)
+}
+
+func readMap(in []byte) ([]common.Path, int) {
 	var rocks []common.Path
 	highestY := 0
 	for _, line := range strings.Split(string(in), "\n") {
@@ -53,25 +114,7 @@ func part1(in []byte) any {
 
 		rocks = append(rocks, rock)
 	}
-
-	placedSand := make(map[common.Vector]int)
-
-	for sand.Y <= highestY+1 {
-		next, found := findNextOption(sand, rocks, placedSand)
-		if !found {
-			placedSand[sand]++
-			sand = sandSpawn.Copy()
-			continue
-		}
-
-		sand = next
-	}
-
-	return len(placedSand)
-}
-
-func part2(in []byte) any {
-	return nil
+	return rocks, highestY
 }
 
 var options = [3]common.Vector{
@@ -80,24 +123,14 @@ var options = [3]common.Vector{
 	{1, 1},
 }
 
-func findNextOption(origin common.Vector, paths []common.Path, occupied map[common.Vector]int) (common.Vector, bool) {
+func findNextOption(origin common.Vector, occupied map[common.Vector]int, isOption func(pos common.Vector) bool) (common.Vector, bool) {
 	for _, option := range options {
 		newPos := origin.Plus(option)
 		if _, ok := occupied[newPos]; ok {
-			//fmt.Printf("can't place sand at %v, already occupied\n", newPos)
 			continue
 		}
 
-		isOption := true
-		for _, path := range paths {
-			if path.Intersects(newPos) {
-				//fmt.Printf("Path intersects with new pos(%v)\n", newPos)
-				isOption = false
-				break
-			}
-		}
-
-		if isOption {
+		if isOption(newPos) {
 			return newPos, true
 		}
 	}

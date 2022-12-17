@@ -25,3 +25,23 @@ func Test_part1(t *testing.T) {
 		})
 	}
 }
+
+func Test_part2(t *testing.T) {
+	in, _ := os.ReadFile("input_test.txt")
+	tests := []struct {
+		name string
+		want int
+	}{
+		{
+			name: "example",
+			want: 93,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := part2(in); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("part2() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
