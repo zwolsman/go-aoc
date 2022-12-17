@@ -71,6 +71,36 @@ func (v Vector) Dist(o Vector) int {
 	return int(math.Abs(float64(o.X-v.X)) + math.Abs(float64(o.Y-v.Y)))
 }
 
+func (v Vector) Span(radius, y int) (Vector, int) {
+
+	target := Vector{
+		X: v.X,
+		Y: y,
+	}
+
+	dist := v.Dist(target)
+
+	span := 0
+	if dist == 0 {
+		span = radius*2 + 1
+	}
+
+	if dist <= radius {
+		span = (radius-dist)*2 + 1
+	}
+
+	if span == 0 {
+		return Vector{}, 0
+	}
+
+	start := Vector{
+		X: v.X - (span-1)/2,
+		Y: y,
+	}
+
+	return start, span
+}
+
 func (v Vector) Normalize() Vector {
 	o := Vector{v.X, v.Y}
 	if o.X < -1 {
