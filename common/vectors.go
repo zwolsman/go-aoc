@@ -1,8 +1,11 @@
 package common
 
 import (
+	"errors"
 	"fmt"
 	"math"
+	"strconv"
+	"strings"
 )
 
 var (
@@ -16,6 +19,25 @@ var (
 
 type Vector struct {
 	X, Y int
+}
+
+func NewVector(in string) (Vector, error) {
+	xstr, ystr, correct := strings.Cut(in, ",")
+	if !correct {
+		return Vector{}, errors.New("could not parse x,y")
+	}
+
+	x, err := strconv.Atoi(xstr)
+	if err != nil {
+		return Vector{}, err
+	}
+
+	y, err := strconv.Atoi(ystr)
+	if err != nil {
+		return Vector{}, err
+	}
+
+	return Vector{x, y}, nil
 }
 
 func (v Vector) Plus(o Vector) Vector {
@@ -64,4 +86,8 @@ func (v Vector) Normalize() Vector {
 		o.Y = 1
 	}
 	return o
+}
+
+func (v Vector) Copy() Vector {
+	return Vector{v.X, v.Y}
 }
