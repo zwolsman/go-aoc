@@ -19,41 +19,12 @@ func main() {
 
 func part1(in []byte, y int) int {
 
-	sensors := make(map[common.Vector]int)
-	beacons := make(map[common.Vector]int)
+	sensors, beacons := readData(in)
 
-	reader := bytes.NewReader(in)
-	maxX, minX := 0, 0
-	for {
-		var sx, sy, bx, by int
-		_, err := fmt.Fscanf(reader, "Sensor at x=%d, y=%d: closest beacon is at x=%d, y=%d\n", &sx, &sy, &bx, &by)
-		if err != nil {
-			if errors.Is(err, io.EOF) {
-				break
-			}
-
-			// TODO: workaround
-			if err == io.ErrUnexpectedEOF {
-				break
-			}
-
-			panic(err)
-		}
-
-		sensor := common.Vector{X: sx, Y: sy}
-		beacon := common.Vector{X: bx, Y: by}
-		dist := sensor.Dist(beacon)
-		sensors[sensor] = dist
-
-		if n := sensor.X + dist; n > maxX {
-			maxX = n
-		}
-
-		if n := sensor.X - dist; n < minX {
-			minX = n
-		}
-
-		beacons[beacon]++
+	minX, maxX := 0, 0
+	for sensor, d := range sensors {
+		minX = common.Min(minX, sensor.X-d)
+		maxX = common.Max(maxX, sensor.X+d)
 	}
 
 	var possibilities int
@@ -80,6 +51,40 @@ func part1(in []byte, y int) int {
 }
 
 func part2(in []byte, size int) any {
+	sensors, _ := readData(in)
+
+	for i := 0; i < size*size; i++ {
+		current := common.Vector{X: i % size, Y: i / size}
+		biggestStep := 0
+
+		for sensor, radius := range sensors {
+			start, span := sensor.Span(radius, current.Y)
+
+			if span == 0 {
+				continue
+			}
+
+			if start.X <= current.X && start.X+span-1 >= current.X {
+				step := span - 1 - current.Dist(start)
+				if step > biggestStep {
+					biggestStep = step
+				}
+			}
+		}
+
+		if biggestStep == 0 {
+			return current.X*4000000 + current.Y
+		}
+
+		i += biggestStep
+	}
+
+	return nil
+}
+
+// readData parses the input into 2 maps, the first map containing all the sensors and their manhattan distance to their nearest beacon
+// the second map contains the location of the beacons
+func readData(in []byte) (map[common.Vector]int, map[common.Vector]int) {
 	sensors := make(map[common.Vector]int)
 	beacons := make(map[common.Vector]int)
 
@@ -113,31 +118,5 @@ func part2(in []byte, size int) any {
 		beacons[beacon]++
 	}
 
-	for i := 0; i < size*size; i++ {
-		current := common.Vector{X: i % size, Y: i / size}
-		biggestStep := 0
-
-		for sensor, radius := range sensors {
-			start, span := sensor.Span(radius, current.Y)
-
-			if span == 0 {
-				continue
-			}
-
-			if start.X <= current.X && start.X+span-1 >= current.X {
-				step := span - 1 - current.Dist(start)
-				if step > biggestStep {
-					biggestStep = step
-				}
-			}
-		}
-
-		if biggestStep == 0 {
-			return current.X*4000000 + current.Y
-		}
-
-		i += biggestStep
-	}
-
-	return nil
+	return sensors, beacons
 }
