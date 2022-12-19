@@ -1,10 +1,13 @@
 package common
 
-import "fmt"
+import (
+	"fmt"
+	"golang.org/x/exp/constraints"
+)
 
 var PLACEHOLDER = struct{}{}
 
-func Max[T int](a, b T) T {
+func Max[T constraints.Ordered](a, b T) T {
 	if a > b {
 		return a
 	} else {
@@ -12,7 +15,15 @@ func Max[T int](a, b T) T {
 	}
 }
 
-func Min[T int](a, b T) T {
+func MaxBy[T any, R constraints.Ordered](in []T, selector func(T) R) R {
+	var max R
+	for _, item := range in {
+		max = Max(max, selector(item))
+	}
+	return max
+}
+
+func Min[T constraints.Ordered](a, b T) T {
 	if a < b {
 		return a
 	} else {
@@ -20,6 +31,25 @@ func Min[T int](a, b T) T {
 	}
 }
 
+func MinBy[T any, R constraints.Ordered](in []T, selector func(T) R) R {
+	var min R
+	for _, item := range in {
+		min = Min(min, selector(item))
+	}
+	return min
+}
+
+func Keys[T map[K]V, K comparable, V any](src T) []K {
+	out := make([]K, len(src))
+	index := 0
+
+	for k, _ := range src {
+		out[index] = k
+		index++
+	}
+
+	return out
+}
 func Values[T map[K]V, K comparable, V any](src T) []V {
 	out := make([]V, len(src))
 	index := 0
