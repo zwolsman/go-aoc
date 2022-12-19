@@ -7,6 +7,7 @@ import (
 	"github.com/zwolsman/go-aoc/common"
 	"log"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -35,7 +36,68 @@ func part1(in []byte) int {
 }
 
 func part2(in []byte) int {
-	return 0
+	pipes := readPipes(in)
+	referenceGraph := createGraph(pipes)
+
+	var ids []string
+	for id, pipe := range pipes {
+		if pipe.flowRate > 0 {
+			ids = append(ids, id)
+		}
+	}
+
+	//sort.Strings(ids)
+	scores := make(map[string]int)
+
+	c := common.Combinations(ids)
+
+	for _, combination := range c {
+		fmt.Printf("Point 4 before sort combination: %v\n", ids)
+		//sort.Strings(combination)
+
+		fmt.Println(combination)
+		fmt.Printf("Point 4: %v\n", ids)
+
+		key := strings.Join(combination, ".")
+		test := common.Copy(pipes)
+
+		for id := range test {
+			if _, ok := common.Index(combination, id); !ok {
+				delete(test, id)
+			}
+		}
+
+		score := open(referenceGraph, "AA", 26, 0, test, 0)
+		scores[key] = score
+	}
+
+	var max int
+
+	for _, combination := range c {
+		var other []string
+
+		for _, id := range ids {
+			if _, ok := common.Index(combination, id); !ok {
+				other = append(other, id)
+			}
+		}
+
+		sort.Strings(other)
+
+		leftKey := strings.Join(combination, ".")
+		rightKey := strings.Join(other, ".")
+		x, ok := scores[leftKey]
+		if !ok {
+			log.Fatal("couldn't find left key")
+		}
+		y, ok := scores[rightKey]
+		if !ok {
+			log.Fatal("couldn't find right key")
+		}
+		max = common.Max(max, x+y)
+	}
+
+	return max
 }
 
 func createGraph(pipes map[string]pipe) *dijkstra.Graph {
