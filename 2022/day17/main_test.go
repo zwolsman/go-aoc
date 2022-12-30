@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func Test_part1(t *testing.T) {
+func Test_run(t *testing.T) {
 	in, _ := os.ReadFile("input_test.txt")
 	tests := []struct {
 		name  string
@@ -23,11 +23,16 @@ func Test_part1(t *testing.T) {
 			rocks: 10,
 			want:  17,
 		},
+		{
+			name:  "example 1000000000000 rounds",
+			rocks: 1000000000000,
+			want:  1514285714288,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := part1(in, tt.rocks); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("part1() = %v, want %v", got, tt.want)
+			if got := run(in, tt.rocks); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("run() = %v, want %v", got, tt.want)
 			}
 		})
 	}

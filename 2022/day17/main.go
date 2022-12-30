@@ -92,11 +92,11 @@ var jetMapping = map[uint8]common.Vector{
 var down = common.Vector{Y: -1}
 
 func main() {
-	fmt.Println(part1(in, 2022)) // 3177 -> too low
-	fmt.Println(part2(in))
+	fmt.Println(run(in, 2022)) // 3177 -> too low
+	fmt.Println(run(in, 1000000000000))
 }
 
-func part1(in []byte, rocks int) int {
+func run(in []byte, rocks int) int {
 
 	jets := string(in)
 	shapeIndex, jetIndex := 0, 0
@@ -129,7 +129,6 @@ func part1(in []byte, rocks int) int {
 	}
 
 	nextJet := func() common.Vector {
-		// fmt.Printf("? trying to apply yet %v\n", strconv.QuoteRune(rune(jets[jetIndex])))
 		jet := jetMapping[jets[jetIndex]]
 		jetIndex = (jetIndex + 1) % len(jets)
 
@@ -140,56 +139,37 @@ func part1(in []byte, rocks int) int {
 	shape := nextShape()
 
 	for i := 0; i < rocks; i++ {
-		// fmt.Println("* origin")
-		// fmt.Println(shape)
-
 		for {
 			// being pushed by a jet of hot gas one unit
 			next := apply(common.Vector.Plus, shape, nextJet())
 
 			// if within bounds
-			if common.MinBy(next, vectorX) >= 0 && common.MaxBy(next, vectorX) <= 6 {
-				if !hits(next, hitboxes) {
-					// fmt.Println("+ shape did not hit hitboxes after jet")
-					shape = next
-				} else {
-					// fmt.Println("- shape hit something after yet")
-				}
-			} else {
-				// fmt.Println("- shape out of bounds after yet")
+			if common.MinBy(next, vectorX) >= 0 && common.MaxBy(next, vectorX) <= 6 && !hits(next, hitboxes) {
+				shape = next
 			}
 
 			//falling one unit down.
 			next = apply(common.Vector.Plus, shape, down)
 
-			// fmt.Println("? trying to move shape down")
-
 			// oh no, hit into something
 			if hits(next, hitboxes) {
-				//fmt.Println("- shape hit something")
-				//fmt.Println(shape)
 
 				// update hitboxes
 				for _, s := range shape {
 					highestY = common.Max(highestY, s.Y)
+
 					hitboxes[s] = common.PLACEHOLDER
 				}
+
 				break
 			} else {
-				//fmt.Println("+ shape downward")
 				shape = next
 			}
 		}
 
-		//fmt.Println("* shape come to a rest")
-		//fmt.Println("--   map   --")
-		//printMap(hitboxes)
-		//fmt.Println("-- end map --")
 		shape = nextShape()
-		//fmt.Println()
 	}
 
-	// fmt.Println(common.MaxBy(common.Keys(hitboxes), vectorY)) //--> sanity check
 	return highestY
 }
 
@@ -236,10 +216,6 @@ func hits(test []common.Vector, hitboxes map[common.Vector]any) bool {
 	}
 
 	return false
-}
-
-func part2(in []byte) any {
-	return nil
 }
 
 func vectorX(vec common.Vector) int {
