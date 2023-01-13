@@ -152,33 +152,32 @@ func parseTile(rawTile string) (int, []string) {
 }
 
 func edges(body []string) []map[location]string {
-	topLeftRight := body[0]
-	bottomLeftRight := body[len(body)-1]
+	bodyToEdges := func() map[location]string {
+		topLeftRight := body[0]
+		bottomLeftRight := body[len(body)-1]
 
-	var leftTopBottom, rightTopBottom string
+		var leftTopBottom, rightTopBottom string
 
-	for i := 0; i < len(body); i++ {
-		leftTopBottom += string(body[i][0])
-		rightTopBottom += string(body[i][len(body[i])-1])
-	}
+		for i := 0; i < len(body); i++ {
+			leftTopBottom += string(body[i][0])
+			rightTopBottom += string(body[i][len(body[i])-1])
+		}
 
-	original := map[location]string{
-		TOP:    topLeftRight,
-		RIGHT:  rightTopBottom,
-		BOTTOM: bottomLeftRight,
-		LEFT:   leftTopBottom,
+		return map[location]string{
+			TOP:    topLeftRight,
+			RIGHT:  rightTopBottom,
+			BOTTOM: bottomLeftRight,
+			LEFT:   leftTopBottom,
+		}
 	}
 
 	mutations := []map[location]string{
-		original,
+		bodyToEdges(), // Original
 	}
 
-	for i := 1; i < 4; i++ { // 3 ways to turn
-		mutation := make(map[location]string)
-		for l, e := range original {
-			mutation[(l+i)%4] = e
-		}
-		mutations = append(mutations, mutation)
+	for i := 0; i < 3; i++ { // 3 ways to turn
+		body = rotate(body)
+		mutations = append(mutations, bodyToEdges())
 	}
 
 	for _, mutation := range mutations {
@@ -205,4 +204,31 @@ func filter[S any](s []S, f func(s S) bool) []S {
 	}
 
 	return out
+}
+
+func rotate(b []string) []string {
+	var body [][]string
+	for _, x := range b {
+		body = append(body, strings.Split(x, ""))
+	}
+
+	// reverse the matrix
+	for i, j := 0, len(body)-1; i < j; i, j = i+1, j-1 {
+		body[i], body[j] = body[j], body[i]
+	}
+
+	// transpose it
+	for i := 0; i < len(body); i++ {
+		for j := 0; j < i; j++ {
+			body[i][j], body[j][i] = body[j][i], body[i][j]
+		}
+	}
+
+	var result []string
+
+	for _, x := range body {
+		result = append(result, strings.Join(x, ""))
+	}
+
+	return result
 }
