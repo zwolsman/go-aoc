@@ -30,6 +30,33 @@ func Min[T constraints.Ordered](a, b T) T {
 		return b
 	}
 }
+func MinArr[T constraints.Ordered](arr []T) T {
+	if len(arr) == 0 {
+		var defaultValue T
+		return defaultValue
+	}
+
+	min := arr[0]
+	for i := 1; i < len(arr); i++ {
+		min = Min(min, arr[i])
+	}
+
+	return min
+}
+
+func MaxArr[T constraints.Ordered](arr []T) T {
+	if len(arr) == 0 {
+		var defaultValue T
+		return defaultValue
+	}
+
+	max := arr[0]
+	for i := 1; i < len(arr); i++ {
+		max = Max(max, arr[i])
+	}
+
+	return max
+}
 
 func MinBy[T any, R constraints.Ordered](in []T, selector func(T) R) R {
 	var min R
@@ -66,6 +93,29 @@ func Copy[T map[K]V, K comparable, V any](src T) T {
 		out[k] = v
 	}
 	return out
+}
+
+func Map[T any, O any](in []T, mapFunc func(T) O) []O {
+	out := make([]O, len(in))
+	for i, item := range in {
+		out[i] = mapFunc(item)
+	}
+
+	return out
+}
+
+func Equals[T comparable](a, b []T) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i, x := range a {
+		if b[i] != x {
+			return false
+		}
+	}
+
+	return true
 }
 
 type Keyable interface {
