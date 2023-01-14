@@ -17,32 +17,21 @@ func main() {
 	fmt.Println(part2(in))
 }
 
-type tile struct {
-	id    int
-	body  []string
-	edges map[location]string
-}
-
-func newTile(id int, body []string) (tiles []tile) {
-	for _, e := range edges(body) {
-		tiles = append(tiles, tile{
-			id:    id,
-			body:  body,
-			edges: e,
-		})
-	}
-
-	return
-}
-
 func part1(in []byte) any {
-	rawTiles := strings.Split(string(in), "\n\n")
-	var tiles []tile
+	tiles := readAllTiles(in)
+	classifications := classifyTiles(tiles)
 
-	for _, rawTile := range rawTiles {
-		id, body := parseTile(rawTile)
-		tiles = append(tiles, newTile(id, body)...)
+	result := 1
+	for id, classification := range classifications {
+		if classification == corner {
+			result *= id
+		}
 	}
+	return result
+}
+
+func part2(in []byte) any {
+	tiles := readAllTiles(in)
 
 	width := int(math.Sqrt(float64(len(tiles) / 12)))
 	solution := backtrack(tiles, make(map[common.Vector]tile), common.Vector{}, width)
@@ -65,6 +54,26 @@ func part1(in []byte) any {
 	}
 
 	return sum
+
+	return nil
+}
+
+type tile struct {
+	id    int
+	body  []string
+	edges map[location]string
+}
+
+func newTile(id int, body []string) (tiles []tile) {
+	for _, e := range edges(body) {
+		tiles = append(tiles, tile{
+			id:    id,
+			body:  body,
+			edges: e,
+		})
+	}
+
+	return
 }
 
 var (
@@ -126,6 +135,7 @@ func backtrack(options []tile, solution map[common.Vector]tile, position common.
 }
 
 type location = int
+type classification = int
 
 const (
 	TOP location = iota
@@ -134,8 +144,59 @@ const (
 	LEFT
 )
 
-func part2(in []byte) any {
-	return nil
+const (
+	corner classification = iota
+	edge
+)
+
+func classifyTiles(tiles []tile) map[int]classification {
+	classifications := make(map[int]classification)
+	edges := make(map[string]map[int]struct{})
+
+	for _, tile := range tiles {
+		for _, e := range tile.edges {
+			if _, ok := edges[e]; !ok {
+				edges[e] = make(map[int]struct{})
+			}
+
+			edges[e][tile.id] = struct{}{}
+		}
+	}
+
+	counts := make(map[int]int)
+	highest := 0
+	for _, ids := range edges {
+		if len(ids) == 1 {
+			for id := range ids {
+				counts[id]++
+				if highest < counts[id] {
+					highest = counts[id]
+				}
+			}
+		}
+	}
+
+	for id, count := range counts {
+		if count == highest {
+			classifications[id] = corner
+		} else {
+			classifications[id] = edge
+		}
+	}
+
+	return classifications
+}
+
+func readAllTiles(in []byte) []tile {
+	rawTiles := strings.Split(string(in), "\n\n")
+	var tiles []tile
+
+	for _, rawTile := range rawTiles {
+		id, body := parseTile(rawTile)
+		tiles = append(tiles, newTile(id, body)...)
+	}
+
+	return tiles
 }
 
 func parseTile(rawTile string) (int, []string) {
