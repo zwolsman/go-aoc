@@ -32,48 +32,102 @@ func part1(in []byte) any {
 
 func part2(in []byte) any {
 	tiles := readAllTiles(in)
-
+	classifications := classifyTiles(tiles)
 	width := int(math.Sqrt(float64(len(tiles) / 12)))
-	solution := backtrack(tiles, make(map[common.Vector]tile), common.Vector{}, width)
 
-	corners := []common.Vector{
-		{0, 0},
-		{width - 1, 0},
-		{0, width - 1},
-		{width - 1, width - 1},
+	var startingTiles []tile
+	for id, classification := range classifications {
+		if classification == corner {
+			startingTiles = append(startingTiles, filter(tiles, func(t tile) bool {
+				return t.id == id
+			})...)
+		}
 	}
 
-	sum := 1
-	for _, c := range corners {
-		tile, ok := solution[c]
-		if !ok {
-			panic("didn't find corner")
+	var solution map[common.Vector]tile
+
+	for _, t := range startingTiles {
+		start := map[common.Vector]tile{
+			common.Vector{}: t,
 		}
 
-		sum *= tile.id
+		btiles := filter(tiles, func(t2 tile) bool {
+			return t2.id != t.id
+		})
+
+		if solution = backtrack(btiles, start, common.Vector{X: 1}, width); solution != nil {
+			break
+		}
 	}
 
-	return sum
+	var solvedMap []string
+	for y := 0; y < width; y++ {
 
-	return nil
+		tile := solution[common.Vector{Y: y}]
+
+		current := strip(tile.body)
+		for x := 1; x < width; x++ {
+			coord := common.Vector{X: x, Y: y}
+			tile := solution[coord]
+
+			for i, l := range strip(tile.body) {
+				current[i] += l
+			}
+		}
+		solvedMap = append(solvedMap, current...)
+	}
+
+	water := 0
+	for _, l := range solvedMap {
+		for _, c := range l {
+			if c == '#' {
+				water++
+			}
+		}
+	}
+
+	pattern := parseSeaMonsterPattern()
+	for _, mutation := range mutations(0, solvedMap) {
+		if count := countPattern(mutation.body, pattern); count > 0 {
+			return water - (len(pattern) * count)
+		}
+	}
+
+	return -1
+}
+
+func countPattern(body []string, pattern []common.Vector) int {
+	m := make(map[common.Vector]rune)
+	for y, row := range body {
+		for x, c := range row {
+			m[common.Vector{X: x, Y: y}] = c
+		}
+	}
+
+	count := 0
+
+	for y := 0; y < len(body); y++ {
+		for x := 0; x < len(body); x++ {
+			coord := common.Vector{X: x, Y: y}
+			transposedPattern := common.Apply(common.Vector.Plus, pattern, coord)
+
+			result := filter(transposedPattern, func(p common.Vector) bool {
+				return m[p] == '#'
+			})
+
+			if len(result) == len(pattern) {
+				count++
+			}
+		}
+	}
+
+	return count
 }
 
 type tile struct {
 	id    int
 	body  []string
 	edges map[location]string
-}
-
-func newTile(id int, body []string) (tiles []tile) {
-	for _, e := range edges(body) {
-		tiles = append(tiles, tile{
-			id:    id,
-			body:  body,
-			edges: e,
-		})
-	}
-
-	return
 }
 
 var (
@@ -145,7 +199,8 @@ const (
 )
 
 const (
-	corner classification = iota
+	inner classification = iota
+	corner
 	edge
 )
 
@@ -193,7 +248,7 @@ func readAllTiles(in []byte) []tile {
 
 	for _, rawTile := range rawTiles {
 		id, body := parseTile(rawTile)
-		tiles = append(tiles, newTile(id, body)...)
+		tiles = append(tiles, mutations(id, body)...)
 	}
 
 	return tiles
@@ -210,52 +265,51 @@ func parseTile(rawTile string) (int, []string) {
 	return id, lines[1:]
 }
 
-func edges(body []string) []map[location]string {
-	bodyToEdges := func() map[location]string {
-		topLeftRight := body[0]
-		bottomLeftRight := body[len(body)-1]
+func edges(body []string) map[location]string {
+	topLeftRight := body[0]
+	bottomLeftRight := body[len(body)-1]
 
-		var leftTopBottom, rightTopBottom string
+	var leftTopBottom, rightTopBottom string
 
-		for i := 0; i < len(body); i++ {
-			leftTopBottom += string(body[i][0])
-			rightTopBottom += string(body[i][len(body[i])-1])
-		}
-
-		return map[location]string{
-			TOP:    topLeftRight,
-			RIGHT:  rightTopBottom,
-			BOTTOM: bottomLeftRight,
-			LEFT:   leftTopBottom,
-		}
+	for i := 0; i < len(body); i++ {
+		leftTopBottom += string(body[i][0])
+		rightTopBottom += string(body[i][len(body[i])-1])
 	}
 
-	mutations := []map[location]string{
-		bodyToEdges(), // Original
+	return map[location]string{
+		TOP:    topLeftRight,
+		RIGHT:  rightTopBottom,
+		BOTTOM: bottomLeftRight,
+		LEFT:   leftTopBottom,
 	}
+}
+
+func mutations(id int, body []string) []tile {
+	var results []tile
+
+	addMutation := func() {
+		results = append(results, tile{
+			id:    id,
+			body:  body,
+			edges: edges(body),
+		})
+	}
+
+	addMutation()
 
 	for i := 0; i < 3; i++ { // 3 ways to turn
 		body = rotate(body)
-		mutations = append(mutations, bodyToEdges())
+		addMutation()
 	}
 
-	for _, mutation := range mutations {
-		for i := 0; i < 2; i++ {
-			flip := make(map[location]string)
-			maps.Copy(flip, mutation)
-
-			flip[i] = mutation[i+2]
-			flip[i+2] = mutation[i]
-
-			flip[i+1] = reverse(flip[i+1])
-			flip[(i+3)%4] = reverse(flip[(i+3)%4])
-
-			mutations = append(mutations, flip)
-		}
-
+	for _, mutation := range results {
+		body = flipVertical(mutation.body)
+		addMutation()
+		body = flipHorizontal(mutation.body)
+		addMutation()
 	}
 
-	return mutations
+	return results
 }
 
 func filter[S any](s []S, f func(s S) bool) []S {
@@ -296,10 +350,57 @@ func rotate(b []string) []string {
 	return result
 }
 
+func flipHorizontal(b []string) []string {
+	result := make([]string, len(b))
+	for i, s := range b {
+		result[i] = reverse(s)
+	}
+	return result
+}
+
+func flipVertical(b []string) []string {
+	result := make([]string, len(b))
+	for i, s := range b {
+		result[len(b)-i-1] = s
+	}
+
+	return result
+}
+
 func reverse(s string) string {
 	r := []rune(s)
 	for i, j := 0, len(r)-1; i < len(r)/2; i, j = i+1, j-1 {
 		r[i], r[j] = r[j], r[i]
 	}
 	return string(r)
+}
+
+const monster = `
+                  # 
+#    ##    ##    ###
+ #  #  #  #  #  #   
+`
+
+func parseSeaMonsterPattern() []common.Vector {
+	rows := strings.Split(monster, "\n")
+	var coords []common.Vector
+
+	for y, row := range rows[1:] {
+		for x, c := range row {
+			if c == '#' {
+				coords = append(coords, common.Vector{X: x, Y: y})
+			}
+		}
+	}
+
+	return coords
+}
+
+func strip(body []string) []string {
+	var output []string
+
+	for i := 1; i < len(body)-1; i++ {
+		output = append(output, body[i][1:len(body[i])-1])
+	}
+	return output
 }

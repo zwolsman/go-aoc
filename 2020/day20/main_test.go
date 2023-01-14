@@ -34,51 +34,64 @@ func Test_part1(t *testing.T) {
 	}
 }
 
-func Test_edges(t *testing.T) {
+func Test_part2(t *testing.T) {
+	tests := []struct {
+		name string
+		want int
+		file string
+	}{
+		{
+			name: "example",
+			want: 273,
+			file: "input_test.txt",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			in, _ := os.ReadFile(tt.file)
+			if got := part2(in); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("part2() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_strip(t *testing.T) {
 	tests := []struct {
 		name string
 		body []string
-		want []map[location]string
+		want []string
 	}{
 		{
-			name: "simple",
+			name: "example",
 			body: []string{
-				"123",
-				"456",
-				"789",
+				"#...##.#..",
+				"..#.#..#.#",
+				".###....#.",
+				"###.##.##.",
+				".###.#####",
+				".##.#....#",
+				"#...######",
+				".....#..##",
+				"#.####...#",
+				"#.##...##.",
 			},
-			want: []map[location]string{
-				{
-					TOP:    "123",
-					BOTTOM: "789",
-					LEFT:   "147",
-					RIGHT:  "369",
-				},
-				{
-					TOP:    "741",
-					BOTTOM: "963",
-					LEFT:   "789",
-					RIGHT:  "123",
-				},
-				{
-					TOP:    "987",
-					BOTTOM: "321",
-					LEFT:   "963",
-					RIGHT:  "741",
-				},
-				{
-					TOP:    "369",
-					BOTTOM: "147",
-					LEFT:   "321",
-					RIGHT:  "987",
-				},
+			want: []string{
+				".#.#..#.",
+				"###....#",
+				"##.##.##",
+				"###.####",
+				"##.#....",
+				"...#####",
+				"....#..#",
+				".####...",
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := edges(tt.body); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("edges() = %v, want %v", got, tt.want)
+			if got := strip(tt.body); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("strip() = %v, want %v", got, tt.want)
 			}
 		})
 	}

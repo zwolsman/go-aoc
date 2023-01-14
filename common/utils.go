@@ -118,6 +118,14 @@ func Equals[T comparable](a, b []T) bool {
 	return true
 }
 
+func Apply[T any](fn func(T, T) T, items []T, arg T) []T {
+	result := make([]T, len(items))
+	for i, v := range items {
+		result[i] = fn(v, arg)
+	}
+	return result
+}
+
 type Keyable interface {
 	Key() string
 }
