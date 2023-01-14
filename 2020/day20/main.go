@@ -45,14 +45,26 @@ func part1(in []byte) any {
 	}
 
 	width := int(math.Sqrt(float64(len(tiles) / 12)))
-	backtrack(tiles, make(map[common.Vector]tile), common.Vector{}, width)
+	solution := backtrack(tiles, make(map[common.Vector]tile), common.Vector{}, width)
 
-	//fmt.Println(results)
-	//fmt.Println(tiles)
-	fmt.Println(common.MaxBy(results, func(x map[common.Vector]tile) int {
-		return len(x)
-	}))
-	return nil
+	corners := []common.Vector{
+		{0, 0},
+		{width - 1, 0},
+		{0, width - 1},
+		{width - 1, width - 1},
+	}
+
+	sum := 1
+	for _, c := range corners {
+		tile, ok := solution[c]
+		if !ok {
+			panic("didn't find corner")
+		}
+
+		sum *= tile.id
+	}
+
+	return sum
 }
 
 var (
@@ -62,24 +74,14 @@ var (
 	bottom = common.Vector{Y: 1}
 )
 
-var results []map[common.Vector]tile
-
-func backtrack(options []tile, solution map[common.Vector]tile, position common.Vector, max int) {
+func backtrack(options []tile, solution map[common.Vector]tile, position common.Vector, max int) map[common.Vector]tile {
 	if len(options) == 0 {
-		results = append(results, solution)
-		return
+		return solution
 	}
 
 	if position.X == max {
 		position = position.Plus(common.Vector{X: -max, Y: 1})
 	}
-	fmt.Println(len(options))
-	fmt.Println(position)
-	fmt.Println()
-
-	//if position.Y == max && position.X == max {
-	//	return solution
-	//}
 
 	knownEdges := make(map[location]string)
 	if tile, ok := solution[position.Plus(left)]; ok {
@@ -105,13 +107,6 @@ func backtrack(options []tile, solution map[common.Vector]tile, position common.
 		return true
 	})
 
-	//fmt.Println(knownEdges)
-	//fmt.Println(possibilities)
-
-	if len(possibilities) == 0 {
-		//fmt.Println("KWEEENIE BRO")
-	}
-
 	for _, option := range possibilities {
 		nextOptions := filter(options, func(o tile) bool {
 			return o.id != option.id
@@ -122,9 +117,12 @@ func backtrack(options []tile, solution map[common.Vector]tile, position common.
 		maps.Copy(nextSolution, solution)
 		nextSolution[position] = option
 
-		backtrack(nextOptions, nextSolution, position.Plus(right), max)
+		if result := backtrack(nextOptions, nextSolution, position.Plus(right), max); result != nil {
+			return result
+		}
 	}
-	results = append(results, solution)
+
+	return nil
 }
 
 type location = int
@@ -187,6 +185,10 @@ func edges(body []string) []map[location]string {
 
 			flip[i] = mutation[i+2]
 			flip[i+2] = mutation[i]
+
+			flip[i+1] = reverse(flip[i+1])
+			flip[(i+3)%4] = reverse(flip[(i+3)%4])
+
 			mutations = append(mutations, flip)
 		}
 
@@ -231,4 +233,12 @@ func rotate(b []string) []string {
 	}
 
 	return result
+}
+
+func reverse(s string) string {
+	r := []rune(s)
+	for i, j := 0, len(r)-1; i < len(r)/2; i, j = i+1, j-1 {
+		r[i], r[j] = r[j], r[i]
+	}
+	return string(r)
 }
