@@ -16,8 +16,17 @@ func main() {
 }
 
 func part1(in []byte) any {
-	monkeys := make(map[string]func() int)
+	monkeys, _, _ := readMonkeys(in)
+	return monkeys["root"]()
+}
 
+func part2(in []byte) any {
+	return nil
+}
+
+func readMonkeys(in []byte) (map[string]func() int, string, string) {
+	monkeys := make(map[string]func() int)
+	var rootLeft, rootRight string
 	for _, line := range strings.Split(string(in), "\n") {
 		id := line[:4]
 		n, err := strconv.Atoi(line[6:])
@@ -30,6 +39,9 @@ func part1(in []byte) any {
 			fields := strings.Fields(line[6:])
 
 			l, r := fields[0], fields[2]
+			if id == "root" {
+				rootLeft, rootRight = l, r
+			}
 
 			var fn func() int
 
@@ -59,9 +71,5 @@ func part1(in []byte) any {
 		}
 	}
 
-	return monkeys["root"]()
-}
-
-func part2(in []byte) any {
-	return nil
+	return monkeys, rootLeft, rootRight
 }
