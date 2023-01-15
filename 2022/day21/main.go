@@ -16,7 +16,7 @@ func main() {
 }
 
 func part1(in []byte) any {
-	monkeys, _, _ := readMonkeys(in)
+	monkeys := readMonkeys(in)
 	return monkeys["root"]()
 }
 
@@ -31,7 +31,7 @@ func part2(in []byte) any {
 
 	facts := make(map[string]int)
 	for id := range monkeys {
-		n, ok := calculate(id, monkeys)
+		n, ok := evaluate(id, monkeys)
 		if ok {
 			facts[id] = n
 		}
@@ -58,24 +58,7 @@ func solve(target string, monkeys map[string]string, facts map[string]int) {
 			if target == "root" {
 				facts[other] = n
 			} else {
-				switch operator {
-				case "/":
-					if i == 0 {
-						facts[other] = n / facts[target]
-					} else {
-						facts[other] = n * facts[target]
-					}
-				case "*":
-					facts[other] = facts[target] / n
-				case "+":
-					facts[other] = facts[target] - n
-				case "-":
-					if i == 0 {
-						facts[other] = (facts[target] - n) * -1
-					} else {
-						facts[other] = facts[target] + n
-					}
-				}
+				facts[other] = substitute(facts[target], n, i, operator)
 			}
 
 			solve(other, monkeys, facts)
@@ -84,7 +67,30 @@ func solve(target string, monkeys map[string]string, facts map[string]int) {
 	}
 }
 
-func calculate(id string, monkeys map[string]string) (int, bool) {
+func substitute(x, constant, pos int, operator string) int {
+	switch operator {
+	case "/":
+		if pos == 0 {
+			return constant / x
+		} else {
+			return constant * x
+		}
+	case "*":
+		return x / constant
+	case "+":
+		return x - constant
+	case "-":
+		if pos == 0 {
+			return (x - constant) * -1
+		} else {
+			return x + constant
+		}
+	default:
+		panic("unknown operator")
+	}
+}
+
+func evaluate(id string, monkeys map[string]string) (int, bool) {
 	monkey, ok := monkeys[id]
 	if !ok {
 		return 0, false
@@ -98,11 +104,11 @@ func calculate(id string, monkeys map[string]string) (int, bool) {
 	} else {
 		l, o, r := fields[0], fields[1], fields[2]
 
-		leftN, ok := calculate(l, monkeys)
+		leftN, ok := evaluate(l, monkeys)
 		if !ok {
 			return 0, false
 		}
-		rightN, ok := calculate(r, monkeys)
+		rightN, ok := evaluate(r, monkeys)
 		if !ok {
 			return 0, false
 		}
@@ -122,9 +128,9 @@ func calculate(id string, monkeys map[string]string) (int, bool) {
 	}
 }
 
-func readMonkeys(in []byte) (map[string]func() int, string, string) {
+func readMonkeys(in []byte) map[string]func() int {
 	monkeys := make(map[string]func() int)
-	var rootLeft, rootRight string
+
 	for _, line := range strings.Split(string(in), "\n") {
 		id := line[:4]
 		n, err := strconv.Atoi(line[6:])
@@ -137,9 +143,6 @@ func readMonkeys(in []byte) (map[string]func() int, string, string) {
 			fields := strings.Fields(line[6:])
 
 			l, r := fields[0], fields[2]
-			if id == "root" {
-				rootLeft, rootRight = l, r
-			}
 
 			var fn func() int
 
@@ -169,5 +172,5 @@ func readMonkeys(in []byte) (map[string]func() int, string, string) {
 		}
 	}
 
-	return monkeys, rootLeft, rootRight
+	return monkeys
 }

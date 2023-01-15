@@ -44,6 +44,11 @@ func Test_part2(t *testing.T) {
 			want: 301,
 			file: "input_test.txt",
 		},
+		{
+			name: "answer",
+			want: 3592056845086,
+			file: "input.txt",
+		},
 	}
 	for _, tt := range tests {
 		in, _ := os.ReadFile(tt.file)
