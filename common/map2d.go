@@ -56,7 +56,7 @@ func (m Map2D) String(width, height int) string {
 		}
 
 		//fmt.Printf("x: %d, y: %d\n", x, y)
-		v, ok := m[Vector{x, y}]
+		v, ok := m[Vector{x, y, 0}]
 		if !ok {
 			str += "."
 		} else {

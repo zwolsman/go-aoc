@@ -9,41 +9,41 @@ import (
 )
 
 var (
-	Left  = Vector{1, 0}
-	Right = Vector{-1, 0}
-	Up    = Vector{0, -1}
-	Down  = Vector{0, 1}
+	Left  = Vector{1, 0, 0}
+	Right = Vector{-1, 0, 0}
+	Up    = Vector{0, -1, 0}
+	Down  = Vector{0, 1, 0}
 
 	LRUD = [4]Vector{Left, Right, Up, Down}
 )
 
 type Vector struct {
-	X, Y int
+	X, Y, Z int
 }
 
 func NewVector(in string) (Vector, error) {
-	xstr, ystr, correct := strings.Cut(in, ",")
-	if !correct {
-		return Vector{}, errors.New("could not parse x,y")
+	s := strings.Split(in, ",")
+	if len(s) < 2 {
+		return Vector{}, errors.New("could not parse x,y or x,y,z")
 	}
 
-	x, err := strconv.Atoi(xstr)
-	if err != nil {
-		return Vector{}, err
+	var x, y, z int
+	x, _ = strconv.Atoi(s[0])
+
+	y, _ = strconv.Atoi(s[1])
+
+	if len(s) == 3 {
+		z, _ = strconv.Atoi(s[2])
 	}
 
-	y, err := strconv.Atoi(ystr)
-	if err != nil {
-		return Vector{}, err
-	}
-
-	return Vector{x, y}, nil
+	return Vector{x, y, z}, nil
 }
 
 func (v Vector) Plus(o Vector) Vector {
 	return Vector{
 		v.X + o.X,
 		v.Y + o.Y,
+		v.Z + o.Z,
 	}
 }
 
@@ -51,17 +51,19 @@ func (v Vector) Min(o Vector) Vector {
 	return Vector{
 		v.X - o.X,
 		v.Y - o.Y,
+		v.Z - o.Z,
 	}
 }
 
 func (v Vector) String() string {
-	return fmt.Sprintf("Vector{X: %d, Y: %d}", v.X, v.Y)
+	return fmt.Sprintf("Vector{X: %d, Y: %d, Z: %d}", v.X, v.Y, v.Z)
 }
 
 func (v Vector) Times(n int) Vector {
 	return Vector{
 		v.X * n,
 		v.Y * n,
+		v.Z * n,
 	}
 }
 
@@ -102,7 +104,7 @@ func (v Vector) Span(radius, y int) (Vector, int) {
 }
 
 func (v Vector) Normalize() Vector {
-	o := Vector{v.X, v.Y}
+	o := Vector{v.X, v.Y, v.Z}
 	if o.X < -1 {
 		o.X = -1
 	}
@@ -115,9 +117,12 @@ func (v Vector) Normalize() Vector {
 	if o.Y > 1 {
 		o.Y = 1
 	}
+	if o.Z > 1 {
+		o.Z = 1
+	}
 	return o
 }
 
 func (v Vector) Copy() Vector {
-	return Vector{v.X, v.Y}
+	return Vector{v.X, v.Y, v.Z}
 }
