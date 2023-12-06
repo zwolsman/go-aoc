@@ -2,6 +2,7 @@ package common
 
 import (
 	"fmt"
+
 	"golang.org/x/exp/constraints"
 )
 
@@ -124,6 +125,17 @@ func Apply[T any](fn func(T, T) T, items []T, arg T) []T {
 		result[i] = fn(v, arg)
 	}
 	return result
+}
+
+func Filter[T any](collection []T, predicate func(T) bool) []T {
+	var out []T
+	for _, c := range collection {
+		if predicate(c) {
+			out = append(out, c)
+		}
+	}
+
+	return out
 }
 
 type Keyable interface {
