@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/zwolsman/go-aoc/common"
 )
 
 //go:embed input.txt
@@ -66,5 +68,29 @@ func part1(in []byte) any {
 }
 
 func part2(in []byte) any {
-	return nil
+	var sum int
+	for _, line := range strings.Split(string(in), "\n") {
+		_, cubesStr, _ := strings.Cut(line, ":")
+
+		allCubes := make(map[string][]int)
+		for _, round := range strings.Split(cubesStr, ";") {
+			cubes := cubesRegex.FindAllStringSubmatch(round, -1)
+
+			for _, cube := range cubes {
+				count, err := strconv.Atoi(cube[cubesCountIndex])
+				if err != nil {
+					panic(err)
+				}
+				color := cube[cubesColorIndex]
+				allCubes[color] = append(allCubes[color], count)
+			}
+		}
+
+		power := 1
+		for _, counts := range allCubes {
+			power *= common.MaxArr(counts)
+		}
+		sum += power
+	}
+	return sum
 }
