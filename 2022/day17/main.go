@@ -4,6 +4,8 @@ import (
 	_ "embed"
 	"fmt"
 	"github.com/zwolsman/go-aoc/common"
+	"reflect"
+	"sort"
 )
 
 //go:embed input.txt
@@ -14,10 +16,10 @@ var in []byte
 0 # # # #
 */
 var horizontalLineShape = []common.Vector{
-	{0, 0},
-	{1, 0},
-	{2, 0},
-	{3, 0},
+	{X: 0, Y: 0},
+	{X: 1, Y: 0},
+	{X: 2, Y: 0},
+	{X: 3, Y: 0},
 }
 
 /*
@@ -27,11 +29,11 @@ var horizontalLineShape = []common.Vector{
 1 . # .
 */
 var plusShape = []common.Vector{
-	{1, 0},
-	{0, 1},
-	{1, 1},
-	{2, 1},
-	{1, 2},
+	{X: 1, Y: 0},
+	{X: 0, Y: 1},
+	{X: 1, Y: 1},
+	{X: 2, Y: 1},
+	{X: 1, Y: 2},
 }
 
 /*
@@ -41,11 +43,11 @@ var plusShape = []common.Vector{
 	  0 # # #
 */
 var cornerShape = []common.Vector{
-	{0, 0},
-	{1, 0},
-	{2, 0},
-	{2, 1},
-	{2, 2},
+	{X: 0, Y: 0},
+	{X: 1, Y: 0},
+	{X: 2, Y: 0},
+	{X: 2, Y: 1},
+	{X: 2, Y: 2},
 }
 
 /*
@@ -57,10 +59,10 @@ var cornerShape = []common.Vector{
 3 #
 */
 var verticalLineShape = []common.Vector{
-	{0, 0},
-	{0, 1},
-	{0, 2},
-	{0, 3},
+	{X: 0, Y: 0},
+	{X: 0, Y: 1},
+	{X: 0, Y: 2},
+	{X: 0, Y: 3},
 }
 
 /*
@@ -70,10 +72,10 @@ var verticalLineShape = []common.Vector{
 1 # #
 */
 var squareShape = []common.Vector{
-	{0, 0},
-	{1, 0},
-	{0, 1},
-	{1, 1},
+	{X: 0, Y: 0},
+	{X: 1, Y: 0},
+	{X: 0, Y: 1},
+	{X: 1, Y: 1},
 }
 
 var shapes = [][]common.Vector{
@@ -92,8 +94,8 @@ var jetMapping = map[uint8]common.Vector{
 var down = common.Vector{Y: -1}
 
 func main() {
-	fmt.Println(run(in, 2022)) // 3177 -> too low
-	fmt.Println(run(in, 1000000000000))
+	fmt.Println(run(in, 2022))              // 3177 -> too low
+	fmt.Println(run(in, 1_000_000_000_000)) // 1209677419384 --> too low
 }
 
 func run(in []byte, rocks int) int {
@@ -103,13 +105,13 @@ func run(in []byte, rocks int) int {
 
 	// initial floor design
 	hitboxes := map[common.Vector]any{
-		{0, 0}: common.PLACEHOLDER,
-		{1, 0}: common.PLACEHOLDER,
-		{2, 0}: common.PLACEHOLDER,
-		{3, 0}: common.PLACEHOLDER,
-		{4, 0}: common.PLACEHOLDER,
-		{5, 0}: common.PLACEHOLDER,
-		{6, 0}: common.PLACEHOLDER,
+		{X: 0, Y: 0}: common.PLACEHOLDER,
+		{X: 1, Y: 0}: common.PLACEHOLDER,
+		{X: 2, Y: 0}: common.PLACEHOLDER,
+		{X: 3, Y: 0}: common.PLACEHOLDER,
+		{X: 4, Y: 0}: common.PLACEHOLDER,
+		{X: 5, Y: 0}: common.PLACEHOLDER,
+		{X: 6, Y: 0}: common.PLACEHOLDER,
 	}
 	highestY := 0
 
@@ -138,10 +140,14 @@ func run(in []byte, rocks int) int {
 	// Initial shape setup
 	shape := nextShape()
 
-	for i := 0; i < rocks; i++ {
+	patternLocations := make(map[int]int)
+	offset := 0
+
+	for i := 1; i <= rocks; i++ {
+		fmt.Printf("Placing rock %d\n", i)
 		for {
 			// being pushed by a jet of hot gas one unit
-			next := apply(common.Vector.Plus, shape, nextJet())
+			next := common.Apply(common.Vector.Plus, shape, nextJet())
 
 			// if within bounds
 			if common.MinBy(next, vectorX) >= 0 && common.MaxBy(next, vectorX) <= 6 && !hits(next, hitboxes) {
@@ -149,7 +155,7 @@ func run(in []byte, rocks int) int {
 			}
 
 			//falling one unit down.
-			next = apply(common.Vector.Plus, shape, down)
+			next = common.Apply(common.Vector.Plus, shape, down)
 
 			// oh no, hit into something
 			if hits(next, hitboxes) {
@@ -161,6 +167,36 @@ func run(in []byte, rocks int) int {
 					hitboxes[s] = common.PLACEHOLDER
 				}
 
+				for _, s := range shape {
+					if hasPatternStart(s.Y, hitboxes) {
+						patternLocations[s.Y] = i
+
+						if len(patternLocations) == 5 {
+							fmt.Println("Full pattern detected!")
+							printMap(hitboxes)
+							fmt.Println(patternLocations)
+
+							ys := common.Keys(patternLocations)
+							rs := common.Values(patternLocations)
+
+							startY := common.MinArr(ys)
+							startRocks := common.MinArr(rs)
+
+							jumpY := s.Y - startY
+							jumpRocks := i - startRocks
+							left := rocks - i
+							times := left / jumpRocks
+
+							offset = jumpY * times
+
+							fmt.Printf("to make a jump of %d rocks you will increase Y by %d (can do this %d times starting at %d)\n", jumpRocks, jumpY, times, s.Y)
+
+							i += jumpRocks * times
+							break
+						}
+					}
+				}
+
 				break
 			} else {
 				shape = next
@@ -170,7 +206,10 @@ func run(in []byte, rocks int) int {
 		shape = nextShape()
 	}
 
-	return highestY
+	printMap(hitboxes)
+	println(offset)
+
+	return highestY + offset
 }
 
 func printMap(hitboxes map[common.Vector]any) {
@@ -200,14 +239,6 @@ func printMap(hitboxes map[common.Vector]any) {
 	}
 }
 
-func apply[T any](fn func(T, T) T, items []T, arg T) []T {
-	result := make([]T, len(items))
-	for i, v := range items {
-		result[i] = fn(v, arg)
-	}
-	return result
-}
-
 func hits(test []common.Vector, hitboxes map[common.Vector]any) bool {
 	for _, t := range test {
 		if _, ok := hitboxes[t]; ok {
@@ -218,6 +249,20 @@ func hits(test []common.Vector, hitboxes map[common.Vector]any) bool {
 	return false
 }
 
+var patternStart = []int{1, 2, 3, 4, 5}
+
+func hasPatternStart(y int, hitboxes map[common.Vector]any) bool {
+	var xs []int
+	for c := range hitboxes {
+		if c.Y != y {
+			continue
+		}
+
+		xs = append(xs, c.X)
+	}
+	sort.Ints(xs)
+	return reflect.DeepEqual(xs, patternStart)
+}
 func vectorX(vec common.Vector) int {
 	return vec.X
 }

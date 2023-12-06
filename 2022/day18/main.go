@@ -53,6 +53,25 @@ func part1(in []byte) int {
 }
 
 func part2(in []byte) any {
+	cubes, err := readCubes(in)
+	if err != nil {
+		panic(err)
+	}
+
+	exposures := make(map[common.Vector]int)
+	for _, cube := range cubes {
+		exposed := 6
+
+		for _, dir := range directions {
+			other := cube.Plus(dir)
+			if n, ok := exposures[other]; ok {
+				exposed--
+				exposures[other] = n - 1
+			}
+		}
+		exposures[cube] = exposed
+	}
+
 	return nil
 }
 

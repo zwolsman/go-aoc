@@ -24,6 +24,11 @@ func Test_run(t *testing.T) {
 			want:  17,
 		},
 		{
+			name:  "answer part 1",
+			rocks: 2022,
+			want:  3188,
+		},
+		{
 			name:  "example 1000000000000 rounds",
 			rocks: 1000000000000,
 			want:  1514285714288,
